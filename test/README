@@ -1,0 +1,55 @@
+EEPROM Mapping
+FLW -> 0      
+FRW -> 2
+BLW -> 4
+BRW -> 6
+
+FLD -> 8
+FRD -> 10
+BLD -> 12
+BRD -> 14
+
+TRR -> 16
+TRL -> 18
+ 
+TLR -> 20
+TLL -> 22
+
+Control Mapping
+1 -> F 
+2 -> B
+3 -> R
+4 -> L
+5 -> FR
+6 -> FL
+7 -> BR
+8 -> BL
+0 -> S
+
+Meaning for Letter
+T -> Trun
+F -> Forward
+R -> Right
+L -> eft
+B -> Backward
+W -> Work
+D -> Drive 
+S -> Stop
+
+TRR : Values form 0 -    63   TRL : Values form 192 - 255
+TLR : Values form 64 -  127   TLL : Values form 128 - 191
+FRW : Values form 0 -    40   FLW : Values form 128 - 168 
+BRW : Values form 64 -  104   BLW : Values form 192 - 232
+FRD : Values form 40 -   63   FLD : Values form 168 - 191 
+BRD : Values form 104 - 127   BLD : Values form 232 - 255
+
+RCWmin ->  Right Wheel Cloackwise Control Minimum
+RCWmax ->  Right Wheel Cloackwise Control Maximum
+RCCWmin -> Right Wheel Cloackwise Control Minimum
+RCCWmax -> Right Wheel Cloackwise Control Maximum
+
+
+LCWmin ->   Left Wheel Cloackwise Control Minimum
+LCWmax ->   Left Wheel Cloackwise Control Maximum
+LCCWmin ->  Left Wheel Cloackwise Control Minimum
+LCCWmax ->  Left Wheel Cloackwise Control Maximum
