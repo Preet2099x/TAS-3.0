@@ -73,8 +73,21 @@ void motion(int _data) {
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, HIGH);
 
-    analogWrite(pwmPin_L, 150);
-    analogWrite(pwmPin_R, 150);
+    if(_data <= 13) {
+    analogWrite(pwmPin_L, 80);
+    analogWrite(pwmPin_R, 80);
+    }
+    else if(_data <= 16) {
+        analogWrite(pwmPin_L, 120);
+        analogWrite(pwmPin_R, 120);
+    }
+    else {
+        analogWrite(pwmPin_L, 180);
+        analogWrite(pwmPin_R, 180);
+    }
+
+    // analogWrite(pwmPin_L, 150);
+    // analogWrite(pwmPin_R, 150);
 
   } 
   else if (_data >= 21 && _data <= 30) 
@@ -82,16 +95,43 @@ void motion(int _data) {
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, LOW);
 
-    analogWrite(pwmPin_L, 150);
-    analogWrite(pwmPin_R, 150);
+    if(_data <= 23) {
+    analogWrite(pwmPin_L, 80);
+    analogWrite(pwmPin_R, 80);
+    }
+    else if(_data <= 26) {
+        analogWrite(pwmPin_L, 120);
+        analogWrite(pwmPin_R, 120);
+    }
+    else {
+        analogWrite(pwmPin_L, 180);
+        analogWrite(pwmPin_R, 180);
+    }
+
+    // analogWrite(pwmPin_L, 150);
+    // analogWrite(pwmPin_R, 150);
   }  
   else if(_data >= 111 && _data <= 120) 
   {
+
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, LOW);
 
-    analogWrite(pwmPin_L, 200);
-    analogWrite(pwmPin_R, 150);  
+    if(_data <= 113) {
+    analogWrite(pwmPin_L, 170);
+    analogWrite(pwmPin_R, 150);
+    }
+    else if(_data <= 116) {
+        analogWrite(pwmPin_L, 200);
+        analogWrite(pwmPin_R, 150);
+    }
+    else {
+        analogWrite(pwmPin_L, 240);
+        analogWrite(pwmPin_R, 150);
+    }
+    
+    // analogWrite(pwmPin_L, 200);
+    // analogWrite(pwmPin_R, 150);  
 
   } 
   else if(_data >= 121 && _data <= 130) 
@@ -99,24 +139,63 @@ void motion(int _data) {
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, LOW);
 
+    if(_data <= 123) {
     analogWrite(pwmPin_L, 150);
-    analogWrite(pwmPin_R, 200);
+    analogWrite(pwmPin_R, 170);
+    }
+    else if(_data <= 126) {
+        analogWrite(pwmPin_L, 150);
+        analogWrite(pwmPin_R, 200);
+    }
+    else {
+        analogWrite(pwmPin_L, 150);
+        analogWrite(pwmPin_R, 240);
+    }
+
+    // analogWrite(pwmPin_L, 150);
+    // analogWrite(pwmPin_R, 200);
   } 
   else if(_data >= 211 && _data <= 220) 
   {
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, HIGH);
 
-    analogWrite(pwmPin_L, 200);
-    analogWrite(pwmPin_R, 150); 
+    if(_data <= 213) {
+    analogWrite(pwmPin_L, 170);
+    analogWrite(pwmPin_R, 150);
+    }
+    else if(_data <= 216) {
+        analogWrite(pwmPin_L, 200);
+        analogWrite(pwmPin_R, 150);
+    }
+    else {
+        analogWrite(pwmPin_L, 240);
+        analogWrite(pwmPin_R, 150);
+    }
+
+    // analogWrite(pwmPin_L, 200);
+    // analogWrite(pwmPin_R, 150); 
   } 
   else if(_data >= 221 && _data <= 230) 
   {
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, HIGH);
 
+    if(_data <= 223) {
     analogWrite(pwmPin_L, 150);
-    analogWrite(pwmPin_R, 200);
+    analogWrite(pwmPin_R, 170);
+    }
+    else if(_data <= 226) {
+        analogWrite(pwmPin_L, 150);
+        analogWrite(pwmPin_R, 200);
+    }
+    else {
+        analogWrite(pwmPin_L, 150);
+        analogWrite(pwmPin_R, 240);
+    }
+
+    // analogWrite(pwmPin_L, 150);
+    // analogWrite(pwmPin_R, 200);
   } 
   lastCommand = _data;
 }
