@@ -63,14 +63,14 @@ int encoderPin_2_R = 4;
 volatile int lastEncoded_L = 0;
 volatile long encoderValue_L = 0;
 long lastencoderValue_L = 0;
-int lastMSB_L = 0;
-int lastLSB_L = 0;
+// int lastMSB_L = 0;
+// int lastLSB_L = 0;
 
 volatile int lastEncoded_R = 0;
 volatile long encoderValue_R = 0;
 long lastencoderValue_R = 0;
-int lastMSB_R = 0;
-int lastLSB_R = 0;
+// int lastMSB_R = 0;
+// int lastLSB_R = 0;
 
 //DIR and PWM Data
 int    delayBrake = 50;
@@ -82,7 +82,7 @@ bool emergencyAlter = true;
 bool  systemCounter = false;
 
 //Control Variable
-char  data = '0';
+int  data = 0;
 int rpmAlter_T = 0;
 int rpmAlter = 0;
 int _dirData = 0;
@@ -188,19 +188,19 @@ void loop() {
         Serial.print(getTeensySerial());
          Serial.print(" | ");
          Serial.println("Motion Module");
-         data = char('0');
+         data = 0;
       } else if(_data == char('s')) {
         systemCounter = true;
         printAlter = false; //TODO: Can be Removed for fast testing
-        data = '0';//TODO: Can be Removed for fast testing
+        data = 0;//TODO: Can be Removed for fast testing
         printSetting();
       } else if(_data == char('p')) {
         printAlter =  !printAlter;
       } else if(_data == char('a')) {
-        if (data != '3' || data != '4' || data != '0') {
+        if (data != 3 && data != 4 && data != 0) {
             rpmAlter = !rpmAlter; 
       } } else if(_data == char('b')) {
-        if (data != '1' || data != '2' || data != '0') {
+        if (data != 1 && data != 2 && data != 0) {
             rpmAlter_T = !rpmAlter_T; 
       } } else if(_data != 10) {
         data = _data;
@@ -224,7 +224,7 @@ void loop() {
   }
 
   if(elaspedTimeControlCounter > timeConstantControlCounter) {
-     data = '0'; //Commenting for Testing //TODO:
+     data = 0; //Commenting for Testing //TODO:
     startTimeControlCounter = currentTimeControlCounter;
   }
   
@@ -236,7 +236,7 @@ void loop() {
     digitalWrite(dirPin_R, LOW);
     analogWrite(pwmPin_L, 0);
     analogWrite(pwmPin_R, 0);
-    data = '0';
+    data = 0; //TODO: Commenting for Testing'';
   } else if (emergency < 900) {
     motion(data);
   } 

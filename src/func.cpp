@@ -38,26 +38,22 @@ uint32_t getTeensySerial() {
   }
 }
 
-//void(* resetFunc) (void) = 0;
 
 void receiveEvent(int bytesReceived) {
-    int _data = kire.read(); 
-    Serial.print(_data);
-    if(_data == 'a') {
-        if (data != '3' || data != '4' || data != '0') {
-            rpmAlter = !rpmAlter; 
-      } } else if(_data == 'b') {
-        if (data != '1' || data != '2' || data != '0') {
-            rpmAlter_T = !rpmAlter_T; 
-      } } else if(_data == 'R') {
-        //resetFunc();
-      } else if(_data != 10) {
-        if(_data == data && elaspedTimeControlCounter < timeConstantControlCounter) {
-          startTimeControlCounter = currentTimeControlCounter;
-        } else {
-          data = _data;
-          startTimeControlCounter = currentTimeControlCounter;
-        }
-    }
-}
 
+    String cmd = "";
+
+    while(kire.available()) {
+        cmd += (char)kire.read();
+    }
+
+    cmd.trim();
+
+    if(cmd.length() == 0) {
+        return;
+    }
+
+    data = cmd.toInt();
+    Serial.println(data);
+    startTimeControlCounter = currentTimeControlCounter;
+}
