@@ -221,6 +221,12 @@ void loop()
       return;
     }
 
+    if (cmd == "P")
+    {
+      autonomousPause();
+      return;
+    }
+
     if (cmd.startsWith("T:"))
     {
       String track = cmd.substring(2);

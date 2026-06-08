@@ -9,12 +9,15 @@ struct AutoCommand
 };
 
 extern bool autonomousRunning;
+extern bool autonomousPaused;
 
 bool autonomousLoadTrack(const char *trackStr);
 
 void autonomousStart();
 
 void autonomousStop();
+
+void autonomousPause();
 
 void autonomousUpdate();
 
