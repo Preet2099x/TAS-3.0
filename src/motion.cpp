@@ -166,7 +166,7 @@ void motion(int _data)
         float derivative = (error - previousHeadingError) / dt;
 
         headingIntegral += error * dt;
-        headingIntegral = constrain(headingIntegral, -10.0f, 10.0f);
+        headingIntegral = constrain(headingIntegral, -15.0f, 15.0f);
         float correction = Kp * error + Ki * headingIntegral + Kd * derivative;
         pidError = error;
         pidCorrection = correction;
@@ -228,7 +228,7 @@ void motion(int _data)
         float derivative = (error - previousHeadingError) / dt;
 
         headingIntegral += error * dt;
-        headingIntegral = constrain(headingIntegral, -10.0f, 10.0f);
+        headingIntegral = constrain(headingIntegral, -15.0f, 15.0f);
         float correction = Kp * error + Ki * headingIntegral + Kd * derivative;
         pidError = error;
         pidCorrection = correction;
