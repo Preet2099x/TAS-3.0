@@ -6,6 +6,9 @@ static bool rampActive = false;
 static int lastCommand = 0;
 static int rampCommand = 0;
 
+static int currentPwmL = 0;
+static int currentPwmR = 0;
+
 
 int applyStartRamp(int targetPWM, int currentCommand)
 {
@@ -35,18 +38,46 @@ int applyStartRamp(int targetPWM, int currentCommand)
     return targetPWM;
 }
 
+int rampDownStep(int pwm)
+{
+    if(pwm > 180)
+        pwm -= 8;
+    else if(pwm > 150)
+        pwm -= 2;
+    else if(pwm > 90)
+        pwm -= 8;
+    else if(pwm > 60)
+        pwm -= 2;
+    else
+        pwm -= 2;
+
+    if(pwm < 0)
+        pwm = 0;
+
+    return pwm;
+}
+
 void motion(int _data) {
-  if(_data == 0) 
-  { 
-    digitalWrite(dirPin_L, LOW);
-    digitalWrite(dirPin_R, LOW);
+if(_data == 0)
+  {
+      currentPwmL = rampDownStep(currentPwmL);
+      currentPwmR = rampDownStep(currentPwmR);
 
-    analogWrite(pwmPin_L, 0);
-    analogWrite(pwmPin_R, 0);
+      analogWrite(pwmPin_L, currentPwmL);
+      analogWrite(pwmPin_R, currentPwmR);
 
-    rampActive = false;
-    rampCommand = 0;
-  }  
+      if(currentPwmL == 0 && currentPwmR == 0)
+      {
+          digitalWrite(dirPin_L, LOW);
+          digitalWrite(dirPin_R, LOW);
+
+          rampActive = false;
+          rampCommand = 0;
+      }
+
+      lastCommand = 0;
+      return;
+  } 
   else if (_data == 1) {
 
     digitalWrite(dirPin_R, LOW);
@@ -54,10 +85,13 @@ void motion(int _data) {
 
     int pwm = applyStartRamp(230, _data);
 
-    analogWrite(pwmPin_R, pwm);
-    analogWrite(pwmPin_L, pwm);
+    currentPwmR = pwm;
+    currentPwmL = pwm;
 
+    analogWrite(pwmPin_R, currentPwmR);
+    analogWrite(pwmPin_L, currentPwmL);
   } 
+
   else if(_data == 2) 
   {
     digitalWrite(dirPin_R, HIGH);
@@ -65,52 +99,56 @@ void motion(int _data) {
 
     int pwm = applyStartRamp(230, _data);
 
-    analogWrite(pwmPin_R, pwm);
-    analogWrite(pwmPin_L, pwm);
-  } 
-  else if (_data >= 11 && _data <= 20) 
+    currentPwmR = pwm;
+    currentPwmL = pwm;
+
+    analogWrite(pwmPin_R, currentPwmR);
+    analogWrite(pwmPin_L, currentPwmL);
+  }
+
+  else if (_data >= 11 && _data <= 20)
   {
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, HIGH);
 
     if(_data <= 13) {
-    analogWrite(pwmPin_L, 80);
-    analogWrite(pwmPin_R, 80);
+      currentPwmL = 60;
+      currentPwmR = 60;
     }
     else if(_data <= 16) {
-        analogWrite(pwmPin_L, 120);
-        analogWrite(pwmPin_R, 120);
+      currentPwmL = 80;
+      currentPwmR = 80;
     }
     else {
-        analogWrite(pwmPin_L, 180);
-        analogWrite(pwmPin_R, 180);
+        currentPwmL = 120;
+        currentPwmR = 120;
     }
+    analogWrite(pwmPin_L, currentPwmL);
+    analogWrite(pwmPin_R, currentPwmR);
+}
 
-    // analogWrite(pwmPin_L, 150);
-    // analogWrite(pwmPin_R, 150);
-
-  } 
   else if (_data >= 21 && _data <= 30) 
   {
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, LOW);
 
     if(_data <= 23) {
-    analogWrite(pwmPin_L, 80);
-    analogWrite(pwmPin_R, 80);
+      currentPwmL = 80;
+      currentPwmR = 80;
     }
     else if(_data <= 26) {
-        analogWrite(pwmPin_L, 120);
-        analogWrite(pwmPin_R, 120);
+      currentPwmL = 120;
+      currentPwmR = 120;
     }
     else {
-        analogWrite(pwmPin_L, 180);
-        analogWrite(pwmPin_R, 180);
+      currentPwmL = 180;
+      currentPwmR = 180;
     }
 
-    // analogWrite(pwmPin_L, 150);
-    // analogWrite(pwmPin_R, 150);
-  }  
+    analogWrite(pwmPin_L, currentPwmL);
+    analogWrite(pwmPin_R, currentPwmR);
+  }
+
   else if(_data >= 111 && _data <= 120) 
   {
 
@@ -118,85 +156,90 @@ void motion(int _data) {
     digitalWrite(dirPin_R, LOW);
 
     if(_data <= 113) {
-    analogWrite(pwmPin_L, 170);
-    analogWrite(pwmPin_R, 150);
+      currentPwmL = 170;
+      currentPwmR = 120;
     }
+
     else if(_data <= 116) {
-        analogWrite(pwmPin_L, 200);
-        analogWrite(pwmPin_R, 150);
+      currentPwmL = 200;
+      currentPwmR = 150;
+
     }
     else {
-        analogWrite(pwmPin_L, 240);
-        analogWrite(pwmPin_R, 150);
+      currentPwmL = 240;
+      currentPwmR = 80;
     }
-    
-    // analogWrite(pwmPin_L, 200);
-    // analogWrite(pwmPin_R, 150);  
 
+    analogWrite(pwmPin_L, currentPwmL);
+    analogWrite(pwmPin_R, currentPwmR);
+    
   } 
-  else if(_data >= 121 && _data <= 130) 
+
+  else if(_data >= 121 && _data <= 130)
   {
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, LOW);
 
     if(_data <= 123) {
-    analogWrite(pwmPin_L, 150);
-    analogWrite(pwmPin_R, 170);
-    }
-    else if(_data <= 126) {
-        analogWrite(pwmPin_L, 150);
-        analogWrite(pwmPin_R, 200);
-    }
-    else {
-        analogWrite(pwmPin_L, 150);
-        analogWrite(pwmPin_R, 240);
+      currentPwmL = 120;
+      currentPwmR = 170;
     }
 
-    // analogWrite(pwmPin_L, 150);
-    // analogWrite(pwmPin_R, 200);
-  } 
+    else if(_data <= 126) {
+        currentPwmL = 150;
+        currentPwmR = 200;
+    }
+      
+    else {
+      currentPwmL = 80;
+      currentPwmR = 240;
+    }
+    analogWrite(pwmPin_L, currentPwmL);
+    analogWrite(pwmPin_R, currentPwmR);
+  }
+
   else if(_data >= 211 && _data <= 220) 
   {
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, HIGH);
 
     if(_data <= 213) {
-    analogWrite(pwmPin_L, 170);
-    analogWrite(pwmPin_R, 150);
-    }
-    else if(_data <= 216) {
-        analogWrite(pwmPin_L, 200);
-        analogWrite(pwmPin_R, 150);
-    }
-    else {
-        analogWrite(pwmPin_L, 240);
-        analogWrite(pwmPin_R, 150);
+      currentPwmL = 170;
+      currentPwmR = 120;
     }
 
-    // analogWrite(pwmPin_L, 200);
-    // analogWrite(pwmPin_R, 150); 
+    else if(_data <= 216) {
+      currentPwmL = 200;
+      currentPwmR = 120;
+    }
+    else {
+        currentPwmL = 240;
+        currentPwmR = 80;
+    }
+
+    analogWrite(pwmPin_L, currentPwmL);
+    analogWrite(pwmPin_R, currentPwmR);
+
+
   } 
   else if(_data >= 221 && _data <= 230) 
   {
-    digitalWrite(dirPin_L, HIGH);
-    digitalWrite(dirPin_R, HIGH);
-
     if(_data <= 223) {
-    analogWrite(pwmPin_L, 150);
-    analogWrite(pwmPin_R, 170);
+        currentPwmL = 120;
+        currentPwmR = 170;
     }
     else if(_data <= 226) {
-        analogWrite(pwmPin_L, 150);
-        analogWrite(pwmPin_R, 200);
+        currentPwmL = 150;
+        currentPwmR = 200;
     }
     else {
-        analogWrite(pwmPin_L, 150);
-        analogWrite(pwmPin_R, 240);
+        currentPwmL = 80;
+        currentPwmR = 240;
     }
 
-    // analogWrite(pwmPin_L, 150);
-    // analogWrite(pwmPin_R, 200);
-  } 
+    analogWrite(pwmPin_L, currentPwmL);
+    analogWrite(pwmPin_R, currentPwmR);
+      } 
   lastCommand = _data;
 }
 
