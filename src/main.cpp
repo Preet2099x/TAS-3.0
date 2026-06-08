@@ -6,6 +6,7 @@
 #include <i2c_driver.h>
 #include <TeensyThreads.h>
 #include <i2c_driver_wire.h>
+#include "autonomous.h"
 
 int SLAVE_ADDRESS = 0x72;
 
@@ -78,6 +79,7 @@ int pin_Emergency = 15;
 bool printAlter = false;
 bool emergencyAlter = true;
 bool systemCounter = false;
+bool emergencyLatched = false;
 
 // Control Variable
 int data = 0;
@@ -150,6 +152,8 @@ void setup()
 
   Serial5.write(0);
   Serial5.write(192);
+
+  autonomousStop();
   /*
   kire.setClock(400 * 1000);
   kire.begin();                // initialize I2C
@@ -186,8 +190,67 @@ void loop()
 
   distanceLoop();
 
-  // Handle Serial Commands
+  // --- Serial command read (non-blocking) ---
+  // Only attempt line-read when data is actually available
+  // (readStringUntil has a 1s default timeout that blocks the entire loop)
   if (Serial.available())
+  {
+    String cmd = Serial.readStringUntil('\n');
+    cmd.trim();
+    cmd.toUpperCase();
+
+    if (cmd == "X")
+    {
+      emergencyLatched = !emergencyLatched;
+
+      if (emergencyLatched)
+      {
+        autonomousStop();
+        data = 0;
+        digitalWrite(dirPin_L, LOW);
+        digitalWrite(dirPin_R, LOW);
+        analogWrite(pwmPin_L, 0);
+        analogWrite(pwmPin_R, 0);
+        Serial.println("EMERGENCY LATCHED");
+      }
+      else
+      {
+        Serial.println("EMERGENCY RELEASED");
+      }
+
+      return;
+    }
+
+    if (cmd.startsWith("T:"))
+    {
+      String track = cmd.substring(2);
+
+      if (autonomousLoadTrack(track.c_str()))
+      {
+        autonomousStart();
+        Serial.println("TRACK LOADED");
+      }
+      else
+      {
+        Serial.println("TRACK ERROR");
+      }
+
+      return;
+    }
+  }
+
+  // --- Emergency latch: hold motors off, skip everything ---
+  if (emergencyLatched)
+  {
+    data = 0;
+    analogWrite(pwmPin_L, 0);
+    analogWrite(pwmPin_R, 0);
+    return;
+  }
+
+  autonomousUpdate();
+  // Handle Serial Commands (skip during autonomous — prevent data override)
+  if (Serial.available() && !autonomousRunning)
   {
     if (systemCounter == false)
     {
@@ -256,7 +319,8 @@ void loop()
 
   if (elaspedTimeControlCounter > timeConstantControlCounter)
   {
-    data = 0; // Commenting for Testing //TODO:
+    if (!autonomousRunning)
+      data = 0; // Watchdog: skip during autonomous mode
     startTimeControlCounter = currentTimeControlCounter;
   }
 
