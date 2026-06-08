@@ -9,6 +9,10 @@ static int rampCommand = 0;
 static int currentPwmL = 0;
 static int currentPwmR = 0;
 
+static unsigned long turnRampStartTime = 0;
+static bool turnRampActive = false;
+static int turnRampCommand = 0;
+
 static unsigned long stopRampStartTime = 0;
 static bool stopRampActive = false;
 
@@ -48,14 +52,13 @@ int applyStartRamp(int targetPWM, int currentCommand)
     return 50 + ((targetPWM - 50) * elapsed) / 1000;
   }
 
-  if (lastCommand == 0 &&
-      (currentCommand == 1 || currentCommand == 2))
+  if (currentCommand != lastCommand && (currentCommand == 1 || currentCommand == 2))
   {
-    rampStartTime = millis();
-    rampCommand = currentCommand;
-    rampActive = true;
+      rampStartTime = millis();
+      rampCommand = currentCommand;
+      rampActive = true;
 
-    return 50;
+      return 50;
   }
 
   return targetPWM;
@@ -69,6 +72,32 @@ float normalizeHeadingError(float error)
     error += 360.0f;
 
   return error;
+}
+
+int applyTurnRamp(int targetPWM, int currentCommand)
+{
+  if (turnRampActive && currentCommand == turnRampCommand)
+  {
+    unsigned long elapsed = millis() - turnRampStartTime;
+
+      if (elapsed >= 50)
+    {
+      turnRampActive = false;
+      return targetPWM;
+    }
+
+      return 50 + ((targetPWM - 50) * elapsed) / 50;
+  }
+
+  if (currentCommand != lastCommand)
+  {
+    turnRampStartTime = millis();
+    turnRampCommand = currentCommand;
+    turnRampActive = true;
+    return 50;
+  }
+
+  return targetPWM;
 }
 
 void motion(int _data)
@@ -109,6 +138,8 @@ void motion(int _data)
       stopRampActive = false;
       rampActive = false;
       rampCommand = 0;
+      turnRampActive = false;
+      turnRampCommand = 0;
 
       lastCommand = 0;
       return;
@@ -345,17 +376,23 @@ void motion(int _data)
     {
       currentPwmL = 170;
       currentPwmR = 120;
+      // currentPwmL = applyTurnRamp(170, _data);
+      // currentPwmR = applyTurnRamp(120, _data);
     }
 
     else if (_data <= 116)
     {
       currentPwmL = 200;
-      currentPwmR = 150;
+      currentPwmR = 120;
+      // currentPwmL = applyTurnRamp(200, _data);
+      // currentPwmR = applyTurnRamp(150, _data);
     }
     else
     {
       currentPwmL = 240;
       currentPwmR = 80;
+      // currentPwmL = applyTurnRamp(240, _data);
+      // currentPwmR = applyTurnRamp(80, _data);
     }
 
     debugPwmL = currentPwmL;
@@ -381,18 +418,24 @@ void motion(int _data)
     {
       currentPwmL = 120;
       currentPwmR = 170;
+      // currentPwmL = applyTurnRamp(120, _data);
+      // currentPwmR = applyTurnRamp(170, _data);
     }
 
     else if (_data <= 126)
     {
-      currentPwmL = 150;
+      currentPwmL = 120;
       currentPwmR = 200;
+      // currentPwmL = applyTurnRamp(120, _data);
+      // currentPwmR = applyTurnRamp(200, _data);
     }
 
     else
     {
       currentPwmL = 80;
       currentPwmR = 240;
+      // currentPwmL = applyTurnRamp(80, _data);
+      // currentPwmR = applyTurnRamp(240, _data);
     }
 
     debugPwmL = currentPwmL;
@@ -419,17 +462,23 @@ void motion(int _data)
     {
       currentPwmL = 170;
       currentPwmR = 120;
+      // currentPwmL = applyTurnRamp(170, _data);
+      // currentPwmR = applyTurnRamp(120, _data);
     }
 
     else if (_data <= 216)
     {
       currentPwmL = 200;
       currentPwmR = 120;
+      // currentPwmL = applyTurnRamp(200, _data);
+      // currentPwmR = applyTurnRamp(120, _data);
     }
     else
     {
       currentPwmL = 240;
       currentPwmR = 80;
+      // currentPwmL = applyTurnRamp(240, _data);
+      // currentPwmR = applyTurnRamp(80, _data);
     }
 
     debugPwmL = currentPwmL;
@@ -454,16 +503,22 @@ void motion(int _data)
     {
       currentPwmL = 120;
       currentPwmR = 170;
+      // currentPwmL = applyTurnRamp(120, _data);
+      // currentPwmR = applyTurnRamp(170, _data);
     }
     else if (_data <= 226)
     {
       currentPwmL = 120;
       currentPwmR = 200;
+      // currentPwmL = applyTurnRamp(120, _data);
+      // currentPwmR = applyTurnRamp(200, _data);
     }
     else
     {
       currentPwmL = 80;
       currentPwmR = 240;
+      // currentPwmL = applyTurnRamp(80, _data);
+      // currentPwmR = applyTurnRamp(240, _data);
     }
 
     debugPwmL = currentPwmL;
