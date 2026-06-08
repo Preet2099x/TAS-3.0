@@ -93,6 +93,11 @@ float startTime, elaspedTime = 0, currentTime;
 float timeConstantControlCounter = 1000; // Chnage This As per Trail
 float startTimeControlCounter, elaspedTimeControlCounter = 0, currentTimeControlCounter;
 
+volatile long totalEncoder_L = 0;
+volatile long totalEncoder_R = 0;
+
+float totalDistanceCm = 0;
+
 void setup()
 {
   // Serial Begin
@@ -178,6 +183,8 @@ void loop()
   // Time Setup Control Counter
   currentTimeControlCounter = millis();
   elaspedTimeControlCounter = currentTimeControlCounter - startTimeControlCounter;
+
+  distanceLoop();
 
   // Handle Serial Commands
   if (Serial.available())
@@ -335,13 +342,17 @@ void loop()
       Serial.print(" | Corr=");
       Serial.print(pidCorrection);
 
-      Serial.print(" | L=");
-      Serial.print(debugPwmL);
+      // Serial.print(" | L=");
+      // Serial.print(debugPwmL);
 
-      Serial.print(" | R=");
-      Serial.println(debugPwmR);
-      Serial.print(" | I=");
-      Serial.println(headingIntegral);
+      // Serial.print(" | R=");
+      // Serial.println(debugPwmR);
+
+      Serial.print(" | Dist=");
+      Serial.println(totalDistanceCm);
+
+      // Serial.print(" | I=");
+      // Serial.println(headingIntegral);
     }
   }
 

@@ -44,6 +44,13 @@ extern long lastencoderValue_R;
 // extern int lastMSB_R;
 // extern int lastLSB_R;
 
+extern volatile long totalEncoder_L;
+extern volatile long totalEncoder_R;
+
+extern float totalDistanceCm;
+
+void distanceLoop();
+
 extern float startTimeControlCounter;
 extern float elaspedTimeControlCounter;
 extern float currentTimeControlCounter;
