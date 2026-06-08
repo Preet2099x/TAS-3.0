@@ -4,53 +4,55 @@
 #ifndef VAR_H
 #define VAR_H
 
-
 extern int data;
 
 extern float currentHeading;
+
+extern float pidError;
+extern float pidCorrection;
+extern float targetHeading;
 
 //---------------------
 extern int pwmPin_L;
 extern int dirPin_L;
 
-//Control Pin R
+// Control Pin R
 extern int pwmPin_R;
 extern int dirPin_R;
 
-
-//Encoder Pin L
+// Encoder Pin L
 extern int encoderPin_1_L;
 extern int encoderPin_2_L;
-//extern int encoderPin3;
+// extern int encoderPin3;
 
-//Encoder Variable L
+// Encoder Variable L
 extern volatile int lastEncoded_L;
 extern volatile long encoderValue_L;
 extern long lastencoderValue_L;
 // extern int lastMSB_L;
 // extern int lastLSB_L;
- 
-//Encoder Pin R
+
+// Encoder Pin R
 extern int encoderPin_1_R;
 extern int encoderPin_2_R;
-//extern int encoderPin3;
+// extern int encoderPin3;
 
-//Encoder Variable R
+// Encoder Variable R
 extern volatile int lastEncoded_R;
 extern volatile long encoderValue_R;
 extern long lastencoderValue_R;
 // extern int lastMSB_R;
 // extern int lastLSB_R;
 
-extern float startTimeControlCounter; 
+extern float startTimeControlCounter;
 extern float elaspedTimeControlCounter;
 extern float currentTimeControlCounter;
 extern float timeConstantControlCounter;
 
-//Pid Variable
-extern int rpmAlter; 
-extern int rpmAlter_T; 
-//Speed -> EEPROM Address
+// Pid Variable
+extern int rpmAlter;
+extern int rpmAlter_T;
+// Speed -> EEPROM Address
 extern int FLW;
 extern int FRW;
 extern int BLW;
@@ -66,7 +68,7 @@ extern int TRL;
 extern int TLR;
 extern int TLL;
 
-//Speed Variable
+// Speed Variable
 extern unsigned int addressFLW;
 extern unsigned int addressFRW;
 extern unsigned int addressBLW;
@@ -82,7 +84,7 @@ extern unsigned int addressTRL;
 extern unsigned int addressTLR;
 extern unsigned int addressTLL;
 
-//float PID(float input);
+// float PID(float input);
 void readEEPROM();
 void printSetting();
 void updatedEEPROM(String _data);
@@ -96,7 +98,7 @@ void motion(int _data);
 uint32_t getTeensySerial();
 float calcAlphaEMA(float fn);
 double handletime(float data);
-//void updatedEEPROM(String _data);
+// void updatedEEPROM(String _data);
 void receiveEvent(int bytesReceived);
 long map(long x, long in_min, long in_max, long out_min, long out_max);
 
@@ -109,5 +111,8 @@ void write8(uint8_t reg, uint8_t val);
 
 void bnoStandaloneSetup();
 void bnoStandaloneLoop();
+
+extern int debugPwmL;
+extern int debugPwmR;
 
 #endif
