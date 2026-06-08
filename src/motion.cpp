@@ -9,6 +9,12 @@ static int rampCommand = 0;
 static int currentPwmL = 0;
 static int currentPwmR = 0;
 
+static unsigned long stopRampStartTime = 0;
+static bool stopRampActive = false;
+
+static int stopStartPwmL = 0;
+static int stopStartPwmR = 0;
+
 
 int applyStartRamp(int targetPWM, int currentCommand)
 {
@@ -38,47 +44,58 @@ int applyStartRamp(int targetPWM, int currentCommand)
     return targetPWM;
 }
 
-int rampDownStep(int pwm)
-{
-    if(pwm > 180)
-        pwm -= 8;
-    else if(pwm > 150)
-        pwm -= 2;
-    else if(pwm > 90)
-        pwm -= 8;
-    else if(pwm > 60)
-        pwm -= 2;
-    else
-        pwm -= 2;
 
-    if(pwm < 0)
-        pwm = 0;
-
-    return pwm;
-}
 
 void motion(int _data) {
 if(_data == 0)
+{
+    if(!stopRampActive)
+    {
+        stopRampStartTime = millis();
+
+        stopStartPwmL = currentPwmL;
+        stopStartPwmR = currentPwmR;
+
+        stopRampActive = true;
+    }
+
+    unsigned long elapsed = millis() - stopRampStartTime;
+
+    if(elapsed >= 20) //20ms Ramp Down
+    {
+        currentPwmL = 0;
+        currentPwmR = 0;
+
+        analogWrite(pwmPin_L, 0);
+        analogWrite(pwmPin_R, 0);
+
+        digitalWrite(dirPin_L, LOW);
+        digitalWrite(dirPin_R, LOW);
+
+        stopRampActive = false;
+        rampActive = false;
+        rampCommand = 0;
+
+        lastCommand = 0;
+        return;
+    }
+
+    float progress = elapsed / 20.0f; //20ms Ramp Down
+    float scale = 1.0f - (progress * progress);
+
+    currentPwmL = stopStartPwmL * scale;
+    currentPwmR = stopStartPwmR * scale;
+
+    analogWrite(pwmPin_L, currentPwmL);
+    analogWrite(pwmPin_R, currentPwmR);
+
+    lastCommand = 0;
+    return;
+}
+  stopRampActive = false;
+
+  if (_data == 1)
   {
-      currentPwmL = rampDownStep(currentPwmL);
-      currentPwmR = rampDownStep(currentPwmR);
-
-      analogWrite(pwmPin_L, currentPwmL);
-      analogWrite(pwmPin_R, currentPwmR);
-
-      if(currentPwmL == 0 && currentPwmR == 0)
-      {
-          digitalWrite(dirPin_L, LOW);
-          digitalWrite(dirPin_R, LOW);
-
-          rampActive = false;
-          rampCommand = 0;
-      }
-
-      lastCommand = 0;
-      return;
-  } 
-  else if (_data == 1) {
 
     digitalWrite(dirPin_R, LOW);
     digitalWrite(dirPin_L, LOW);
@@ -120,8 +137,8 @@ if(_data == 0)
       currentPwmR = 80;
     }
     else {
-        currentPwmL = 120;
-        currentPwmR = 120;
+      currentPwmL = 120;
+      currentPwmR = 120;
     }
     analogWrite(pwmPin_L, currentPwmL);
     analogWrite(pwmPin_R, currentPwmR);
@@ -213,8 +230,8 @@ if(_data == 0)
       currentPwmR = 120;
     }
     else {
-        currentPwmL = 240;
-        currentPwmR = 80;
+      currentPwmL = 240;
+      currentPwmR = 80;
     }
 
     analogWrite(pwmPin_L, currentPwmL);
@@ -224,17 +241,21 @@ if(_data == 0)
   } 
   else if(_data >= 221 && _data <= 230) 
   {
+
+    digitalWrite(dirPin_L, HIGH);
+    digitalWrite(dirPin_R, HIGH);
+
     if(_data <= 223) {
-        currentPwmL = 120;
-        currentPwmR = 170;
+      currentPwmL = 120;
+      currentPwmR = 170;
     }
     else if(_data <= 226) {
-        currentPwmL = 150;
-        currentPwmR = 200;
+      currentPwmL = 120;
+      currentPwmR = 200;
     }
     else {
-        currentPwmL = 80;
-        currentPwmR = 240;
+      currentPwmL = 80;
+      currentPwmR = 240;
     }
 
     analogWrite(pwmPin_L, currentPwmL);
