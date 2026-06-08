@@ -105,8 +105,14 @@ double handletime(float data);
 void receiveEvent(int bytesReceived);
 long map(long x, long in_min, long in_max, long out_min, long out_max);
 
-void thread_func();
-void bno_write(uint8_t i2c_addr, uint8_t reg, uint8_t data);
-void bno_read_multiple(uint8_t i2c_addr, uint8_t reg, uint8_t *buf, uint8_t length);
+// void thread_func();
+// void bno_write(uint8_t i2c_addr, uint8_t reg, uint8_t data);
+// void bno_read_multiple(uint8_t i2c_addr, uint8_t reg, uint8_t *buf, uint8_t length);
+
+int16_t read16(uint8_t reg);
+void write8(uint8_t reg, uint8_t val);
+
+void bnoStandaloneSetup();
+void bnoStandaloneLoop();
 
 #endif

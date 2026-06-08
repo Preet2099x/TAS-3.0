@@ -21,7 +21,7 @@ void write8(uint8_t reg, uint8_t val) {
 }
 
 void bnoStandaloneSetup() {
-  Serial.begin(115200);
+  // Serial.begin(115200);
   Wire1.begin();
 
   delay(700);
@@ -63,5 +63,5 @@ void bnoStandaloneLoop() {
   Serial.print(" Gy: "); Serial.print(gy);
   Serial.print(" Gz: "); Serial.println(gz);
 
-  delay(200);
+  // delay(200);
 }

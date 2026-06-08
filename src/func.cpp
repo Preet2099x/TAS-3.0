@@ -54,6 +54,6 @@ void receiveEvent(int bytesReceived) {
     }
 
     data = cmd.toInt();
-    Serial.println(data);
+    // Serial.println(data);
     startTimeControlCounter = currentTimeControlCounter;
 }

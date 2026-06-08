@@ -10,13 +10,13 @@
 
 int SLAVE_ADDRESS = 0x72;
 
-uint8_t BNO_ADDR =       0x28;  // I2C address of BNO
-uint8_t ACC_DATA_X_LSB = 0x08;  // BNO register Acceleration Data X LSB
-uint8_t CALIB_STAT =     0x35;  // BNO register SYS Calib Status <7:6>, GYR Calib Status <5:4>, ACC Calib Status <3:2>, MAG Calib Status <1:0>
-uint8_t OPR_MODE   =     0x3D; // BNO register Operation Mode <3:0>
-uint8_t NDOF       =     0x0C;
+// uint8_t BNO_ADDR =       0x28;  // I2C address of BNO
+// uint8_t ACC_DATA_X_LSB = 0x08;  // BNO register Acceleration Data X LSB
+// uint8_t CALIB_STAT =     0x35;  // BNO register SYS Calib Status <7:6>, GYR Calib Status <5:4>, ACC Calib Status <3:2>, MAG Calib Status <1:0>
+// uint8_t OPR_MODE   =     0x3D; // BNO register Operation Mode <3:0>
+// uint8_t NDOF       =     0x0C;
 
-imuData imu;
+// imuData imu;
 
 int FLW = 0;
 int FRW = 0;
@@ -111,6 +111,7 @@ void setup() {
 
   //initializeBNO055();
   pinMode(pin_Emergency, INPUT_PULLDOWN);
+  bnoStandaloneSetup();
 
   //Time Setup
   startTime = millis();
@@ -256,37 +257,45 @@ void loop() {
     avgRPM_R = filter_R(rpm_R);
 
 
-    if(printAlter == true) {  
-      Serial.print(data);
-      Serial.print(" | ");
-      //Serial.print(rpmAlter);
-      //Serial.print(" | ");
-      //Serial.print(rpmAlter_T);
-      //Serial.print(" | ");
-      Serial.print(emergency);
-      Serial.print(" | ");
-      Serial.print(avgRPM_L);
-      Serial.print(" | ");
-      Serial.print(avgRPM_R);
-      Serial.print(" | ");
-      Serial.print(1.0/16*imu.eul_heading);
-      Serial.print(" | ");
-      Serial.print(1.0/16*imu.eul_roll);
-      Serial.print(" | ");
-      Serial.print(1.0/16*imu.eul_pitch);
-      Serial.print(" | ");
-      Serial.println(imu.temp);
-      /*Serial.print(" | ");
-      Serial.print((s.calib_stat >> 6) & 3);
-      Serial.print(" | ");
-      Serial.print((s.calib_stat >> 4) & 3);
-      Serial.print(" | ");
-      Serial.print((s.calib_stat >> 2) & 3);
-      Serial.print(" | ");
-      Serial.println((s.calib_stat >> 0) & 3); */
-   }
+  //   if(printAlter == true) {  
+  //     Serial.print(data);
+  //     Serial.print(" | ");
+  //     //Serial.print(rpmAlter);
+  //     //Serial.print(" | ");
+  //     //Serial.print(rpmAlter_T);
+  //     //Serial.print(" | ");
+  //     Serial.print(emergency);
+  //     Serial.print(" | ");
+  //     Serial.print(avgRPM_L);
+  //     Serial.print(" | ");
+  //     Serial.print(avgRPM_R);
+  //     Serial.print(" | ");
+  //     Serial.print(1.0/16*imu.eul_heading);
+  //     Serial.print(" | ");
+  //     Serial.print(1.0/16*imu.eul_roll);
+  //     Serial.print(" | ");
+  //     Serial.print(1.0/16*imu.eul_pitch);
+  //     Serial.print(" | ");
+  //     Serial.println(imu.temp);
+  //     /*Serial.print(" | ");
+  //     Serial.print((s.calib_stat >> 6) & 3);
+  //     Serial.print(" | ");
+  //     Serial.print((s.calib_stat >> 4) & 3);
+  //     Serial.print(" | ");
+  //     Serial.print((s.calib_stat >> 2) & 3);
+  //     Serial.print(" | ");
+  //     Serial.println((s.calib_stat >> 0) & 3); */
+  //  }
 
    encoderValue_L = encoderValue_R = 0;
+
+   static unsigned long bnoPrintTimer = 0;
+
+    if(millis() - bnoPrintTimer >= 200)
+    {
+        bnoPrintTimer = millis();
+        bnoStandaloneLoop();
+    }
 
   }
 
