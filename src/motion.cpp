@@ -9,6 +9,8 @@ static int rampCommand = 0;
 static int currentPwmL = 0;
 static int currentPwmR = 0;
 
+static int rampStartPWM = 50;
+
 static unsigned long turnRampStartTime = 0;
 static bool turnRampActive = false;
 static int turnRampCommand = 0;
@@ -49,7 +51,7 @@ int applyStartRamp(int targetPWM, int currentCommand)
       return targetPWM;
     }
 
-    return 50 + ((targetPWM - 50) * elapsed) / 1000;
+    return rampStartPWM + ((targetPWM - rampStartPWM) * elapsed) / 1000;
   }
 
   if (currentCommand != lastCommand && (currentCommand == 1 || currentCommand == 2))
@@ -58,7 +60,12 @@ int applyStartRamp(int targetPWM, int currentCommand)
       rampCommand = currentCommand;
       rampActive = true;
 
-      return 50;
+      if ((lastCommand >= 111 && lastCommand <= 130) || (lastCommand >= 211 && lastCommand <= 230))
+        rampStartPWM = 150;   // keep momentum after arcs
+      else
+        rampStartPWM = 50;    // normal start from stop
+
+      return rampStartPWM;
   }
 
   return targetPWM;
