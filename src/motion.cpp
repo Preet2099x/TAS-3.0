@@ -15,6 +15,19 @@ static bool stopRampActive = false;
 static int stopStartPwmL = 0;
 static int stopStartPwmR = 0;
 
+static bool headingHoldActive = false;
+static unsigned long headingCaptureStart = 0;
+
+static float targetHeading = 0;
+
+static float headingIntegral = 0;
+static float previousHeadingError = 0;
+static unsigned long previousPidTime = 0;
+
+const float Kp = 0.5f;
+const float Ki = 0.0f;
+const float Kd = 0.01f;
+
 
 int applyStartRamp(int targetPWM, int currentCommand)
 {
@@ -44,11 +57,24 @@ int applyStartRamp(int targetPWM, int currentCommand)
     return targetPWM;
 }
 
+float normalizeHeadingError(float error)
+{
+    while(error > 180.0f) error -= 360.0f;
+    while(error < -180.0f) error += 360.0f;
+
+    return error;
+}
+
 
 
 void motion(int _data) {
 if(_data == 0)
 {
+  headingHoldActive = false;
+  headingCaptureStart = 0;
+  headingIntegral = 0;
+  previousPidTime = 0;
+
     if(!stopRampActive)
     {
         stopRampStartTime = millis();
@@ -102,8 +128,48 @@ if(_data == 0)
 
     int pwm = applyStartRamp(230, _data);
 
-    currentPwmR = pwm;
-    currentPwmL = pwm;
+    if(!headingHoldActive)
+    {
+      if(headingCaptureStart == 0)
+        headingCaptureStart = millis();
+
+      if(millis() - headingCaptureStart >= 200)
+      {
+        targetHeading = currentHeading;
+        headingHoldActive = true;
+        headingIntegral = 0;
+        previousHeadingError = 0;
+        previousPidTime = millis();
+      }
+    }
+
+    if(headingHoldActive)
+    {
+      float error = normalizeHeadingError(targetHeading - currentHeading);
+
+      unsigned long now = millis();
+
+      float dt = (now - previousPidTime) / 1000.0f;
+
+      if(dt > 0.001f)
+      {
+        float derivative = (error - previousHeadingError) / dt;
+
+        float correction = Kp * error + Kd * derivative;
+
+        currentPwmL = constrain(pwm + correction, 0, 255);
+        currentPwmR = constrain(pwm - correction, 0, 255);
+
+        previousHeadingError = error;
+      }
+
+      previousPidTime = now;
+    }
+    else
+    {
+      currentPwmL = pwm;
+      currentPwmR = pwm;
+    }
 
     analogWrite(pwmPin_R, currentPwmR);
     analogWrite(pwmPin_L, currentPwmL);
@@ -116,8 +182,48 @@ if(_data == 0)
 
     int pwm = applyStartRamp(230, _data);
 
-    currentPwmR = pwm;
-    currentPwmL = pwm;
+    if(!headingHoldActive)
+    {
+      if(headingCaptureStart == 0)
+        headingCaptureStart = millis();
+
+      if(millis() - headingCaptureStart >= 200)
+      {
+        targetHeading = currentHeading;
+        headingHoldActive = true;
+        headingIntegral = 0;
+        previousHeadingError = 0;
+        previousPidTime = millis();
+      }
+    }
+
+    if(headingHoldActive)
+    {
+      float error = normalizeHeadingError(targetHeading - currentHeading);
+
+      unsigned long now = millis();
+
+      float dt = (now - previousPidTime) / 1000.0f;
+
+      if(dt > 0.001f)
+      {
+          float derivative = (error - previousHeadingError) / dt;
+
+          float correction = Kp * error + Kd * derivative;
+
+          currentPwmL = constrain(pwm - correction, 0, 255);
+          currentPwmR = constrain(pwm + correction, 0, 255);
+
+          previousHeadingError = error;
+      }
+
+      previousPidTime = now;
+    }
+    else
+    {
+      currentPwmL = pwm;
+      currentPwmR = pwm;
+    }
 
     analogWrite(pwmPin_R, currentPwmR);
     analogWrite(pwmPin_L, currentPwmL);
@@ -125,6 +231,12 @@ if(_data == 0)
 
   else if (_data >= 11 && _data <= 20)
   {
+    headingHoldActive = false;
+    headingCaptureStart = 0;
+    headingIntegral = 0;
+    previousHeadingError = 0;
+    previousPidTime = 0;
+
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, HIGH);
 
@@ -146,6 +258,11 @@ if(_data == 0)
 
   else if (_data >= 21 && _data <= 30) 
   {
+      headingHoldActive = false;
+      headingCaptureStart = 0;
+      headingIntegral = 0;
+      previousHeadingError = 0;
+      previousPidTime = 0;
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, LOW);
 
@@ -168,7 +285,11 @@ if(_data == 0)
 
   else if(_data >= 111 && _data <= 120) 
   {
-
+      headingHoldActive = false;
+      headingCaptureStart = 0;
+      headingIntegral = 0;
+      previousHeadingError = 0;
+      previousPidTime = 0;
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, LOW);
 
@@ -194,6 +315,11 @@ if(_data == 0)
 
   else if(_data >= 121 && _data <= 130)
   {
+      headingHoldActive = false;
+      headingCaptureStart = 0;
+      headingIntegral = 0;
+      previousHeadingError = 0;
+      previousPidTime = 0;
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, LOW);
 
@@ -217,6 +343,12 @@ if(_data == 0)
 
   else if(_data >= 211 && _data <= 220) 
   {
+      headingHoldActive = false;
+      headingCaptureStart = 0;
+      headingIntegral = 0;
+      previousHeadingError = 0;
+      previousPidTime = 0;
+
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, HIGH);
 
@@ -241,7 +373,11 @@ if(_data == 0)
   } 
   else if(_data >= 221 && _data <= 230) 
   {
-
+      headingHoldActive = false;
+      headingCaptureStart = 0;
+      headingIntegral = 0;
+      previousHeadingError = 0;
+      previousPidTime = 0;
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, HIGH);
 
@@ -260,7 +396,7 @@ if(_data == 0)
 
     analogWrite(pwmPin_L, currentPwmL);
     analogWrite(pwmPin_R, currentPwmR);
-      } 
+  } 
   lastCommand = _data;
 }
 

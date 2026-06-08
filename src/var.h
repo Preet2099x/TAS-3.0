@@ -1,18 +1,13 @@
 #include <string.h>
 #include <Arduino.h>
-#include <structure.h>
 
 #ifndef VAR_H
 #define VAR_H
 
-extern imuData imu;
-extern uint8_t BNO_ADDR;  // I2C address of BNO
-extern uint8_t ACC_DATA_X_LSB;  // BNO register Acceleration Data X LSB
-extern uint8_t CALIB_STAT;  // BNO register SYS Calib Status <7:6>, GYR Calib Status <5:4>, ACC Calib Status <3:2>, MAG Calib Status <1:0>
-extern uint8_t OPR_MODE; // BNO register Operation Mode <3:0>
-extern uint8_t NDOF;
 
 extern int data;
+
+extern float currentHeading;
 
 //---------------------
 extern int pwmPin_L;

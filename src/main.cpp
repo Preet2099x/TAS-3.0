@@ -3,7 +3,6 @@
 #include <string.h>
 #include <EEPROM.h>
 #include <Arduino.h>
-#include <structure.h>
 #include <i2c_driver.h>
 #include <TeensyThreads.h>
 #include <i2c_driver_wire.h>
