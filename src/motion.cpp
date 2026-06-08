@@ -27,8 +27,8 @@ float pidCorrection = 0;
 unsigned long previousPidTime = 0;
 
 const float Kp = 2.0f;
-const float Ki = 0.0f;
-const float Kd = 0.01f;
+const float Ki = 0.5f;
+const float Kd = 0.05f;  // Low — BNO055 jitter amplifies through derivative
 
 int debugPwmL = 0;
 int debugPwmR = 0;
@@ -81,6 +81,7 @@ void motion(int _data)
     previousPidTime = 0;
     pidError = 0;
     pidCorrection = 0;
+    targetHeading = currentHeading;
 
     if (!stopRampActive)
     {
@@ -164,7 +165,9 @@ void motion(int _data)
 
         float derivative = (error - previousHeadingError) / dt;
 
-        float correction = Kp * error + Kd * derivative;
+        headingIntegral += error * dt;
+        headingIntegral = constrain(headingIntegral, -10.0f, 10.0f);
+        float correction = Kp * error + Ki * headingIntegral + Kd * derivative;
         pidError = error;
         pidCorrection = correction;
 
@@ -182,6 +185,9 @@ void motion(int _data)
     {
       currentPwmL = pwm;
       currentPwmR = pwm;
+
+      debugPwmL = currentPwmL;
+      debugPwmR = currentPwmR;
     }
 
     analogWrite(pwmPin_R, currentPwmR);
@@ -221,7 +227,9 @@ void motion(int _data)
 
         float derivative = (error - previousHeadingError) / dt;
 
-        float correction = Kp * error + Kd * derivative;
+        headingIntegral += error * dt;
+        headingIntegral = constrain(headingIntegral, -10.0f, 10.0f);
+        float correction = Kp * error + Ki * headingIntegral + Kd * derivative;
         pidError = error;
         pidCorrection = correction;
 
@@ -239,6 +247,9 @@ void motion(int _data)
     {
       currentPwmL = pwm;
       currentPwmR = pwm;
+
+      debugPwmL = currentPwmL;
+      debugPwmR = currentPwmR;
     }
 
     analogWrite(pwmPin_R, currentPwmR);
@@ -254,6 +265,7 @@ void motion(int _data)
     previousPidTime = 0;
     pidError = 0;
     pidCorrection = 0;
+    targetHeading = currentHeading;
 
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, HIGH);
@@ -289,6 +301,7 @@ void motion(int _data)
     previousPidTime = 0;
     pidError = 0;
     pidCorrection = 0;
+    targetHeading = currentHeading;
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, LOW);
 
@@ -324,6 +337,7 @@ void motion(int _data)
     previousPidTime = 0;
     pidError = 0;
     pidCorrection = 0;
+    targetHeading = currentHeading;
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, LOW);
 
@@ -359,6 +373,7 @@ void motion(int _data)
     previousPidTime = 0;
     pidError = 0;
     pidCorrection = 0;
+    targetHeading = currentHeading;
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, LOW);
 
@@ -395,6 +410,7 @@ void motion(int _data)
     previousPidTime = 0;
     pidError = 0;
     pidCorrection = 0;
+    targetHeading = currentHeading;
 
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, HIGH);
@@ -430,6 +446,7 @@ void motion(int _data)
     previousPidTime = 0;
     pidError = 0;
     pidCorrection = 0;
+    targetHeading = currentHeading;
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, HIGH);
 

@@ -11,7 +11,7 @@ extern float currentHeading;
 extern float pidError;
 extern float pidCorrection;
 extern float targetHeading;
-
+extern float headingIntegral;
 //---------------------
 extern int pwmPin_L;
 extern int dirPin_L;

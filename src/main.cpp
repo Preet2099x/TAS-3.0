@@ -340,6 +340,8 @@ void loop()
 
       Serial.print(" | R=");
       Serial.println(debugPwmR);
+      Serial.print(" | I=");
+      Serial.println(headingIntegral);
     }
   }
 
