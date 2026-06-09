@@ -4,6 +4,7 @@
 #define BNO055_ADDR 0x28
 
 float currentHeading = 0;
+volatile bool headingUpdated = false;
 
 int16_t read16(uint8_t reg)
 {
@@ -54,6 +55,7 @@ void bnoStandaloneLoop()
 {
   // Euler angles (deg * 16)
   currentHeading = read16(0x1A) / 16.0;
+  headingUpdated = true;
   float heading = currentHeading;
   float roll = read16(0x1C) / 16.0;
   float pitch = read16(0x1E) / 16.0;

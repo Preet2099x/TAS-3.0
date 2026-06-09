@@ -254,6 +254,13 @@ void loop()
     return;
   }
 
+  static unsigned long bnoReadTimer = 0;
+  if (millis() - bnoReadTimer >= 10)
+  {
+    bnoReadTimer = millis();
+    bnoStandaloneLoop();
+  }
+
   autonomousUpdate();
   // Handle Serial Commands (skip during autonomous — prevent data override)
   if (Serial.available() && !autonomousRunning)
@@ -428,10 +435,4 @@ void loop()
 
   // Read BNO heading at ~100Hz (every 10ms) so PID has fresh data
   // This MUST be outside the 100ms RPM timer block
-  static unsigned long bnoReadTimer = 0;
-  if (millis() - bnoReadTimer >= 10)
-  {
-    bnoReadTimer = millis();
-    bnoStandaloneLoop();
-  }
 }

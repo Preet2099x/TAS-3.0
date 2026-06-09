@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <i2c_driver.h>
 #include <i2c_driver_wire.h>
+#include "autonomous.h"
 
 float calcAlphaEMA(float fn)
 {
@@ -66,7 +67,14 @@ void receiveEvent(int bytesReceived)
         return;
     }
 
-    data = cmd.toInt();
-    // Serial.println(data);
-    startTimeControlCounter = currentTimeControlCounter;
+    if (!autonomousRunning)
+    {
+        data = cmd.toInt();
+        startTimeControlCounter = currentTimeControlCounter;
+    }
+    else
+    {
+        Serial.println("I2C ignored - autonomous active");
+    }
+
 }

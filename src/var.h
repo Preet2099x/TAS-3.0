@@ -7,6 +7,7 @@
 extern int data;
 
 extern float currentHeading;
+extern volatile bool headingUpdated;
 
 extern float pidError;
 extern float pidCorrection;

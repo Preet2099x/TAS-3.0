@@ -1,7 +1,7 @@
 #include "autonomous.h"
 #include <var.h>
 
-#define MAX_COMMANDS 50
+#define MAX_COMMANDS 30
 
 AutoCommand track[MAX_COMMANDS];
 
@@ -12,6 +12,7 @@ bool autonomousRunning = false;
 bool autonomousPaused = false;
 
 static float pauseRemainingValue = 0;
+static float resumeTargetValue = 0;
 
 static bool stepInitialized = false;
 
@@ -83,6 +84,7 @@ void autonomousStart()
     autonomousRunning = true;
     autonomousPaused = false;
     pauseRemainingValue = 0;
+    resumeTargetValue = 0;
 
     Serial.println("AUTO START");
 }
@@ -112,9 +114,10 @@ void autonomousPause()
 
             if (cmd.type == 'F' || cmd.type == 'B')
             {
+                float effectiveTarget = (resumeTargetValue > 0) ? resumeTargetValue : cmd.value;
                 float travelled =
                     (totalDistanceCm - stepStartDistance) / 100.0f;
-                pauseRemainingValue = cmd.value - travelled;
+                pauseRemainingValue = effectiveTarget - travelled;
 
                 if (pauseRemainingValue < 0)
                     pauseRemainingValue = 0;
@@ -125,8 +128,8 @@ void autonomousPause()
             }
             else if (cmd.type == 'L' || cmd.type == 'R')
             {
-                float turned = fabs(accumulatedAngle);
-                pauseRemainingValue = cmd.value - turned;
+                float effectiveTarget = (resumeTargetValue > 0) ? resumeTargetValue : cmd.value;
+                pauseRemainingValue = effectiveTarget - accumulatedAngle;
 
                 if (pauseRemainingValue < 0)
                     pauseRemainingValue = 0;
@@ -159,7 +162,7 @@ void autonomousPause()
             if (cmd.type == 'F' || cmd.type == 'B')
             {
                 stepStartDistance = totalDistanceCm;
-                cmd.value = pauseRemainingValue;
+                resumeTargetValue = pauseRemainingValue;
 
                 Serial.print("RESUMED — ");
                 Serial.print(pauseRemainingValue);
@@ -169,7 +172,7 @@ void autonomousPause()
             {
                 accumulatedAngle = 0;
                 previousHeading = currentHeading;
-                cmd.value = pauseRemainingValue;
+                resumeTargetValue = pauseRemainingValue;
 
                 Serial.print("RESUMED — ");
                 Serial.print(pauseRemainingValue);
@@ -216,14 +219,16 @@ void autonomousUpdate()
 
         data = 1;
 
+        float target = (resumeTargetValue > 0) ? resumeTargetValue : cmd.value;
         float travelled =
             (totalDistanceCm - stepStartDistance) / 100.0f;
 
-        if (travelled >= cmd.value)
+        if (travelled >= target)
         {
             Serial.print("FWD DONE ");
             Serial.println(travelled);
 
+            resumeTargetValue = 0;
             nextStep();
         }
 
@@ -244,14 +249,16 @@ void autonomousUpdate()
 
         data = 2;
 
+        float target = (resumeTargetValue > 0) ? resumeTargetValue : cmd.value;
         float travelled =
             (totalDistanceCm - stepStartDistance) / 100.0f;
 
-        if (travelled >= cmd.value)
+        if (travelled >= target)
         {
             Serial.print("BACK DONE ");
             Serial.println(travelled);
 
+            resumeTargetValue = 0;
             nextStep();
         }
 
@@ -263,6 +270,7 @@ void autonomousUpdate()
         {
             accumulatedAngle = 0;
             previousHeading = currentHeading;
+            resumeTargetValue = 0;
             stepInitialized = true;
 
             Serial.print("LEFT START ");
@@ -270,21 +278,30 @@ void autonomousUpdate()
             Serial.println(" deg");
         }
 
-        data = 21; // left turn
+        data = 25; // left turn
 
-        float delta =
-            normalizeAutoAngle(currentHeading - previousHeading);
+        // Only process heading delta when the IMU has new data
+        if (headingUpdated)
+        {
+            headingUpdated = false;
 
-        accumulatedAngle += delta;
-        previousHeading = currentHeading;
+            float delta =
+                normalizeAutoAngle(currentHeading - previousHeading);
 
-        float turned = fabs(accumulatedAngle);
+            // Left turn: only accumulate negative rotation (heading decreasing)
+            if (delta < 0)
+                accumulatedAngle += (-delta); // store as positive magnitude
+            previousHeading = currentHeading;
+        }
 
-        if (turned >= (cmd.value - TURN_TOLERANCE))
+        float target = (resumeTargetValue > 0) ? resumeTargetValue : cmd.value;
+
+        if (accumulatedAngle >= (target - TURN_TOLERANCE))
         {
             Serial.print("LEFT DONE ");
-            Serial.println(turned);
+            Serial.println(accumulatedAngle);
 
+            resumeTargetValue = 0;
             nextStep();
         }
 
@@ -297,6 +314,7 @@ void autonomousUpdate()
         {
             accumulatedAngle = 0;
             previousHeading = currentHeading;
+            resumeTargetValue = 0;
             stepInitialized = true;
 
             Serial.print("RIGHT START ");
@@ -304,21 +322,30 @@ void autonomousUpdate()
             Serial.println(" deg");
         }
 
-        data = 11; // right turn
+        data = 15; // right turn
 
-        float delta =
-            normalizeAutoAngle(currentHeading - previousHeading);
+        // Only process heading delta when the IMU has new data
+        if (headingUpdated)
+        {
+            headingUpdated = false;
 
-        accumulatedAngle += delta;
-        previousHeading = currentHeading;
+            float delta =
+                normalizeAutoAngle(currentHeading - previousHeading);
 
-        float turned = fabs(accumulatedAngle);
+            // Right turn: only accumulate positive rotation (heading increasing)
+            if (delta > 0)
+                accumulatedAngle += delta;
+            previousHeading = currentHeading;
+        }
 
-        if (turned >= (cmd.value - TURN_TOLERANCE))
+        float target = (resumeTargetValue > 0) ? resumeTargetValue : cmd.value;
+
+        if (accumulatedAngle >= (target - TURN_TOLERANCE))
         {
             Serial.print("RIGHT DONE ");
-            Serial.println(turned);
+            Serial.println(accumulatedAngle);
 
+            resumeTargetValue = 0;
             nextStep();
         }
 
