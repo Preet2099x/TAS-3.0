@@ -72,9 +72,9 @@ void receiveEvent(int bytesReceived)
         data = cmd.toInt();
         startTimeControlCounter = currentTimeControlCounter;
     }
-    else
-    {
-        Serial.println("I2C ignored - autonomous active");
-    }
+    // else
+    // {
+    //     Serial.println("I2C ignored - autonomous active");
+    // }
 
 }

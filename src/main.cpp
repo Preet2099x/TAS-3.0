@@ -195,53 +195,120 @@ void loop()
   // (readStringUntil has a 1s default timeout that blocks the entire loop)
   if (Serial.available())
   {
-    String cmd = Serial.readStringUntil('\n');
-    cmd.trim();
-    cmd.toUpperCase();
-
-    if (cmd == "X")
+    if (systemCounter == false)
     {
-      emergencyLatched = !emergencyLatched;
+      int _data = Serial.read();
 
-      if (emergencyLatched)
+      // --- High-priority commands (always handled) ---
+      if (_data == 'X' || _data == 'x')
       {
-        autonomousStop();
-        data = 0;
-        digitalWrite(dirPin_L, LOW);
-        digitalWrite(dirPin_R, LOW);
-        analogWrite(pwmPin_L, 0);
-        analogWrite(pwmPin_R, 0);
-        Serial.println("EMERGENCY LATCHED");
-      }
-      else
-      {
-        Serial.println("EMERGENCY RELEASED");
-      }
+        emergencyLatched = !emergencyLatched;
 
-      return;
+        if (emergencyLatched)
+        {
+          autonomousStop();
+          data = 0;
+          digitalWrite(dirPin_L, LOW);
+          digitalWrite(dirPin_R, LOW);
+          analogWrite(pwmPin_L, 0);
+          analogWrite(pwmPin_R, 0);
+          Serial.println("EMERGENCY LATCHED");
+        }
+        else
+        {
+          Serial.println("EMERGENCY RELEASED");
+        }
+
+        return;
+      }
+      else if (_data == 'Q' || _data == 'q')
+      {
+        autonomousPause();
+        return;
+      }
+      else if (_data == 'T' || _data == 't')
+      {
+        String track = Serial.readStringUntil('\n');
+        track.trim();
+        // Strip leading ':' if present (protocol sends "T:track_data")
+        if (track.length() > 0 && track.charAt(0) == ':')
+          track = track.substring(1);
+
+        if (autonomousLoadTrack(track.c_str()))
+        {
+          autonomousStart();
+          Serial.println("TRACK LOADED");
+        }
+        else
+        {
+          Serial.println("TRACK ERROR");
+        }
+
+        return;
+      }
+      // --- Normal commands (skipped during autonomous to prevent data override) ---
+      else if (!autonomousRunning)
+      {
+        if (_data == char('m'))
+        {
+          Serial.print(getTeensySerial());
+          Serial.print(" | ");
+          Serial.println("Motion Module");
+          data = 0;
+        }
+        else if (_data == char('s'))
+        {
+          systemCounter = true;
+          printAlter = false; // TODO: Can be Removed for fast testing
+          data = 0;           // TODO: Can be Removed for fast testing
+          printSetting();
+        }
+        else if (_data == char('p'))
+        {
+          printAlter = !printAlter;
+        }
+        else if (_data == char('a'))
+        {
+          if (data != 3 && data != 4 && data != 0)
+          {
+            rpmAlter = !rpmAlter;
+          }
+        }
+        else if (_data == char('b'))
+        {
+          if (data != 1 && data != 2 && data != 0)
+          {
+            rpmAlter_T = !rpmAlter_T;
+          }
+        }
+        else if (_data != 10)
+        {
+          data = _data;
+          if (_data == data && elaspedTimeControlCounter < timeConstantControlCounter)
+          {
+            startTimeControlCounter = currentTimeControlCounter;
+          }
+          else
+          {
+            data = _data;
+            startTimeControlCounter = currentTimeControlCounter;
+          }
+        }
+      }
     }
-
-    if (cmd == "P")
+    else
     {
-      autonomousPause();
-      return;
-    }
-
-    if (cmd.startsWith("T:"))
-    {
-      String track = cmd.substring(2);
-
-      if (autonomousLoadTrack(track.c_str()))
+      String _data = Serial.readString();
+      _data = _data.remove(_data.length() - 1, 1);
+      if (_data.length() == 1 && _data == "s")
       {
-        autonomousStart();
-        Serial.println("TRACK LOADED");
+        Serial.println("Chaging to Control Mode");
+        systemCounter = false;
       }
-      else
+      else if (_data.length() >= 1)
       {
-        Serial.println("TRACK ERROR");
+        updatedEEPROM(_data);
       }
-
-      return;
     }
   }
 
@@ -262,73 +329,6 @@ void loop()
   }
 
   autonomousUpdate();
-  // Handle Serial Commands (skip during autonomous — prevent data override)
-  if (Serial.available() && !autonomousRunning)
-  {
-    if (systemCounter == false)
-    {
-      int _data = Serial.read();
-      if (_data == char('m'))
-      {
-        Serial.print(getTeensySerial());
-        Serial.print(" | ");
-        Serial.println("Motion Module");
-        data = 0;
-      }
-      else if (_data == char('s'))
-      {
-        systemCounter = true;
-        printAlter = false; // TODO: Can be Removed for fast testing
-        data = 0;           // TODO: Can be Removed for fast testing
-        printSetting();
-      }
-      else if (_data == char('p'))
-      {
-        printAlter = !printAlter;
-      }
-      else if (_data == char('a'))
-      {
-        if (data != 3 && data != 4 && data != 0)
-        {
-          rpmAlter = !rpmAlter;
-        }
-      }
-      else if (_data == char('b'))
-      {
-        if (data != 1 && data != 2 && data != 0)
-        {
-          rpmAlter_T = !rpmAlter_T;
-        }
-      }
-      else if (_data != 10)
-      {
-        data = _data;
-        if (_data == data && elaspedTimeControlCounter < timeConstantControlCounter)
-        {
-          startTimeControlCounter = currentTimeControlCounter;
-        }
-        else
-        {
-          data = _data;
-          startTimeControlCounter = currentTimeControlCounter;
-        }
-      }
-    }
-    else
-    {
-      String _data = Serial.readString();
-      _data = _data.remove(_data.length() - 1, 1);
-      if (_data.length() == 1 && _data == "s")
-      {
-        Serial.println("Chaging to Control Mode");
-        systemCounter = false;
-      }
-      else if (_data.length() >= 1)
-      {
-        updatedEEPROM(_data);
-      }
-    }
-  }
 
   if (elaspedTimeControlCounter > timeConstantControlCounter)
   {
@@ -405,28 +405,28 @@ void loop()
 
     if (millis() - bnoPrintTimer >= 200)
     {
-      bnoPrintTimer = millis();
+      // bnoPrintTimer = millis();
 
-      Serial.print(" Heading=");
-      Serial.print(currentHeading);
+      // Serial.print(" Heading=");
+      // Serial.print(currentHeading);
 
-      Serial.print(" | Target=");
-      Serial.print(targetHeading);
+      // Serial.print(" | Target=");
+      // Serial.print(targetHeading);
 
-      Serial.print(" | Error=");
-      Serial.print(pidError);
+      // Serial.print(" | Error=");
+      // Serial.print(pidError);
 
-      Serial.print(" | Corr=");
-      Serial.print(pidCorrection);
+      // Serial.print(" | Corr=");
+      // Serial.print(pidCorrection);
 
-      // Serial.print(" | L=");
-      // Serial.print(debugPwmL);
+      // // Serial.print(" | L=");
+      // // Serial.print(debugPwmL);
 
-      // Serial.print(" | R=");
-      // Serial.println(debugPwmR);
+      // // Serial.print(" | R=");
+      // // Serial.println(debugPwmR);
 
-      Serial.print(" | Dist=");
-      Serial.println(totalDistanceCm);
+      // Serial.print(" | Dist=");
+      // Serial.println(totalDistanceCm);
 
       // Serial.print(" | I=");
       // Serial.println(headingIntegral);
