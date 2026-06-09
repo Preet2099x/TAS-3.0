@@ -405,22 +405,22 @@ void loop()
 
     if (millis() - bnoPrintTimer >= 200)
     {
-      // bnoPrintTimer = millis();
+      bnoPrintTimer = millis();
 
-      // Serial.print(" Heading=");
-      // Serial.print(currentHeading);
+      Serial.print(" Heading=");
+      Serial.print(currentHeading);
 
-      // Serial.print(" | Target=");
-      // Serial.print(targetHeading);
+      Serial.print(" | Target=");
+      Serial.print(targetHeading);
 
-      // Serial.print(" | Error=");
-      // Serial.print(pidError);
+      Serial.print(" | Error=");
+      Serial.print(pidError);
 
-      // Serial.print(" | Corr=");
-      // Serial.print(pidCorrection);
+      Serial.print(" | Corr=");
+      Serial.println(pidCorrection);
 
-      // // Serial.print(" | L=");
-      // // Serial.print(debugPwmL);
+      // Serial.print(" | L=");
+      // Serial.print(debugPwmL);
 
       // // Serial.print(" | R=");
       // // Serial.println(debugPwmR);
