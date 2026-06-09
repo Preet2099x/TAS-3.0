@@ -100,6 +100,12 @@ volatile long totalEncoder_R = 0;
 
 float totalDistanceCm = 0;
 
+// RPM closed-loop control
+bool rpmPidEnabled = true;
+float measuredAvgRPM = 0;
+float measuredRPM_L = 0;
+float measuredRPM_R = 0;
+
 void setup()
 {
   // Serial Begin
@@ -281,6 +287,12 @@ void loop()
             rpmAlter_T = !rpmAlter_T;
           }
         }
+        else if (_data == char('r') || _data == char('R'))
+        {
+          rpmPidEnabled = !rpmPidEnabled;
+          Serial.print("RPM PID: ");
+          Serial.println(rpmPidEnabled ? "ON" : "OFF");
+        }
         else if (_data != 10)
         {
           data = _data;
@@ -368,6 +380,11 @@ void loop()
     avgRPM_L = filter_L(rpm_L);
     avgRPM_R = filter_R(rpm_R);
 
+    // Export filtered RPM to shared globals for speed PID in motion.cpp
+    measuredRPM_L = avgRPM_L;
+    measuredRPM_R = avgRPM_R;
+    measuredAvgRPM = (measuredRPM_L + measuredRPM_R) * 0.5f;
+
     //   if(printAlter == true) {
     //     Serial.print(data);
     //     Serial.print(" | ");
@@ -405,19 +422,19 @@ void loop()
 
     if (millis() - bnoPrintTimer >= 200)
     {
-      bnoPrintTimer = millis();
+      // bnoPrintTimer = millis();
 
-      Serial.print(" Heading=");
-      Serial.print(currentHeading);
+      // Serial.print(" Heading=");
+      // Serial.print(currentHeading);
 
-      Serial.print(" | Target=");
-      Serial.print(targetHeading);
+      // Serial.print(" | Target=");
+      // Serial.print(targetHeading);
 
-      Serial.print(" | Error=");
-      Serial.print(pidError);
+      // Serial.print(" | Error=");
+      // Serial.print(pidError);
 
-      Serial.print(" | Corr=");
-      Serial.println(pidCorrection);
+      // Serial.print(" | Corr=");
+      // Serial.println(pidCorrection);
 
       // Serial.print(" | L=");
       // Serial.print(debugPwmL);

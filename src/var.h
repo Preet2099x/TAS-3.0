@@ -13,6 +13,12 @@ extern float pidError;
 extern float pidCorrection;
 extern float targetHeading;
 extern float headingIntegral;
+
+// RPM closed-loop control
+extern bool rpmPidEnabled;
+extern float measuredAvgRPM;
+extern float measuredRPM_L;
+extern float measuredRPM_R;
 //---------------------
 extern int pwmPin_L;
 extern int dirPin_L;

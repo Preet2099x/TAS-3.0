@@ -47,6 +47,7 @@ print(f"\n[CONNECTED] {selected_port}")
 print("Controls:")
 print("  x        = emergency stop  (instant)")
 print("  q        = pause/resume    (instant)")
+print("  r        = toggle RPM PID  (instant)")
 print("  Ctrl+C   = exit CLI")
 print("Track commands (type + Enter):")
 print("  F1")
@@ -126,6 +127,12 @@ while True:
         if ch in ("q", "Q"):
             print("q")
             send_byte("Q")
+            print("> ", end="", flush=True)
+            continue
+
+        if ch in ("r", "R"):
+            print("r")
+            send_byte("r")
             print("> ", end="", flush=True)
             continue
 
