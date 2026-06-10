@@ -28,7 +28,7 @@ unsigned long previousPidTime = 0;
 
 const float Kp = 2.0f;
 const float Ki = 0.5f;
-const float Kd = 0.05f;  // Low — BNO055 jitter amplifies through derivative
+const float Kd = 0.05f; // Low — BNO055 jitter amplifies through derivative
 
 int debugPwmL = 0;
 int debugPwmR = 0;
@@ -137,7 +137,9 @@ void motion(int _data)
     digitalWrite(dirPin_R, LOW);
     digitalWrite(dirPin_L, LOW);
 
-    int pwm = applyStartRamp(230, _data);
+    int pwm = applyStartRamp(
+        straightBoost ? 230 : 115,
+        _data);
 
     if (!headingHoldActive)
     {
@@ -199,7 +201,9 @@ void motion(int _data)
     digitalWrite(dirPin_R, HIGH);
     digitalWrite(dirPin_L, HIGH);
 
-    int pwm = applyStartRamp(230, _data);
+    int pwm = applyStartRamp(
+        straightBoost ? 230 : 115,
+        _data);
 
     if (!headingHoldActive)
     {
@@ -272,18 +276,18 @@ void motion(int _data)
 
     if (_data <= 13)
     {
-      currentPwmL = 60;
-      currentPwmR = 60;
+      currentPwmL = turnBoost ? 60 : 30;
+      currentPwmR = turnBoost ? 60 : 30;
     }
     else if (_data <= 16)
     {
-      currentPwmL = 80;
-      currentPwmR = 80;
+      currentPwmL = turnBoost ? 80 : 40;
+      currentPwmR = turnBoost ? 80 : 40;
     }
     else
     {
-      currentPwmL = 120;
-      currentPwmR = 120;
+      currentPwmL = turnBoost ? 120 : 60;
+      currentPwmR = turnBoost ? 120 : 60;
     }
 
     debugPwmL = currentPwmL;
@@ -307,18 +311,18 @@ void motion(int _data)
 
     if (_data <= 23)
     {
-      currentPwmL = 80;
-      currentPwmR = 80;
+      currentPwmL = turnBoost ? 80 : 40;
+      currentPwmR = turnBoost ? 80 : 40;
     }
     else if (_data <= 26)
     {
-      currentPwmL = 120;
-      currentPwmR = 120;
+      currentPwmL = turnBoost ? 120 : 60;
+      currentPwmR = turnBoost ? 120 : 60;
     }
     else
     {
-      currentPwmL = 180;
-      currentPwmR = 180;
+      currentPwmL = turnBoost ? 180 : 90;
+      currentPwmR = turnBoost ? 180 : 90;
     }
 
     debugPwmL = currentPwmL;
@@ -343,19 +347,18 @@ void motion(int _data)
 
     if (_data <= 223)
     {
-      currentPwmL = 170;
-      currentPwmR = 120;
+      currentPwmL = straightBoost ? 170 : 85;
+      currentPwmR = straightBoost ? 120 : 60;
     }
-
     else if (_data <= 226)
     {
-      currentPwmL = 200;
-      currentPwmR = 150;
+      currentPwmL = straightBoost ? 200 : 100;
+      currentPwmR = straightBoost ? 150 : 75;
     }
     else
     {
-      currentPwmL = 240;
-      currentPwmR = 80;
+      currentPwmL = straightBoost ? 240 : 120;
+      currentPwmR = straightBoost ? 80 : 40;
     }
 
     debugPwmL = currentPwmL;
@@ -364,7 +367,7 @@ void motion(int _data)
     analogWrite(pwmPin_R, currentPwmR);
   }
 
-  else if (_data >= 221 && _data <= 230)
+  else if (_data >= 211 && _data <= 220)
   {
     headingHoldActive = false;
     headingCaptureStart = 0;
@@ -377,22 +380,20 @@ void motion(int _data)
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, LOW);
 
-    if (_data <= 223)
+    if (_data <= 213)
     {
-      currentPwmL = 120;
-      currentPwmR = 170;
+      currentPwmL = straightBoost ? 120 : 60;
+      currentPwmR = straightBoost ? 170 : 85;
     }
-
-    else if (_data <= 226)
+    else if (_data <= 216)
     {
-      currentPwmL = 150;
-      currentPwmR = 200;
+      currentPwmL = straightBoost ? 150 : 75;
+      currentPwmR = straightBoost ? 200 : 100;
     }
-
     else
     {
-      currentPwmL = 80;
-      currentPwmR = 240;
+      currentPwmL = straightBoost ? 80 : 40;
+      currentPwmR = straightBoost ? 240 : 120;
     }
 
     debugPwmL = currentPwmL;
@@ -417,19 +418,18 @@ void motion(int _data)
 
     if (_data <= 123)
     {
-      currentPwmL = 170;
-      currentPwmR = 120;
+      currentPwmL = straightBoost ? 170 : 85;
+      currentPwmR = straightBoost ? 120 : 60;
     }
-
     else if (_data <= 126)
     {
-      currentPwmL = 200;
-      currentPwmR = 120;
+      currentPwmL = straightBoost ? 200 : 100;
+      currentPwmR = straightBoost ? 120 : 60;
     }
     else
     {
-      currentPwmL = 240;
-      currentPwmR = 80;
+      currentPwmL = straightBoost ? 240 : 120;
+      currentPwmR = straightBoost ? 80 : 40;
     }
 
     debugPwmL = currentPwmL;
@@ -452,18 +452,18 @@ void motion(int _data)
 
     if (_data <= 113)
     {
-      currentPwmL = 120;
-      currentPwmR = 170;
+      currentPwmL = straightBoost ? 120 : 60;
+      currentPwmR = straightBoost ? 170 : 85;
     }
     else if (_data <= 116)
     {
-      currentPwmL = 120;
-      currentPwmR = 200;
+      currentPwmL = straightBoost ? 120 : 60;
+      currentPwmR = straightBoost ? 200 : 100;
     }
     else
     {
-      currentPwmL = 80;
-      currentPwmR = 240;
+      currentPwmL = straightBoost ? 80 : 40;
+      currentPwmR = straightBoost ? 240 : 120;
     }
 
     debugPwmL = currentPwmL;

@@ -58,6 +58,9 @@ int encoderPin_2_L = 20;
 int encoderPin_1_R = 23;
 int encoderPin_2_R = 22;
 
+bool turnBoost = false;
+bool straightBoost = false;
+
 volatile int lastEncoded_L = 0;
 volatile long encoderValue_L = 0;
 long lastencoderValue_L = 0;
@@ -205,17 +208,17 @@ void loop()
       }
       else if (_data == char('a'))
       {
-        if (data != 3 && data != 4 && data != 0)
-        {
-          rpmAlter = !rpmAlter;
-        }
+        turnBoost = !turnBoost;
+
+        Serial.print("Turn Boost: ");
+        Serial.println(turnBoost ? "ON" : "OFF");
       }
       else if (_data == char('b'))
       {
-        if (data != 1 && data != 2 && data != 0)
-        {
-          rpmAlter_T = !rpmAlter_T;
-        }
+        straightBoost = !straightBoost;
+
+        Serial.print("Straight Boost: ");
+        Serial.println(straightBoost ? "ON" : "OFF");
       }
       else if (_data != 10)
       {

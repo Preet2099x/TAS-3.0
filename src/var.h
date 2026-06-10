@@ -49,6 +49,9 @@ extern float elaspedTimeControlCounter;
 extern float currentTimeControlCounter;
 extern float timeConstantControlCounter;
 
+extern bool turnBoost;
+extern bool straightBoost;
+
 // Pid Variable
 extern int rpmAlter;
 extern int rpmAlter_T;
