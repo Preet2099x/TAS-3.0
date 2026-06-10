@@ -26,6 +26,8 @@ float pidError = 0;
 float pidCorrection = 0;
 unsigned long previousPidTime = 0;
 
+static unsigned long boostCommandTimer = 0;
+
 const float Kp = 2.0f;
 const float Ki = 0.5f;
 const float Kd = 0.05f; // Low — BNO055 jitter amplifies through derivative
@@ -73,6 +75,38 @@ float normalizeHeadingError(float error)
 
 void motion(int _data)
 {
+
+  if (_data == 65)
+  {
+    if (millis() - boostCommandTimer >= 500)
+    {
+      boostCommandTimer = millis();
+
+      turnBoost = !turnBoost;
+
+      // Serial.print("Turn Boost: ");
+      // Serial.println(turnBoost ? "ON" : "OFF");
+    }
+
+    // data = 0;
+    return;
+  }
+
+  if (_data == 66)
+  {
+    if (millis() - boostCommandTimer >= 500)
+    {
+      boostCommandTimer = millis();
+
+      straightBoost = !straightBoost;
+
+      // Serial.print("Straight Boost: ");
+      // Serial.println(straightBoost ? "ON" : "OFF");
+    }
+
+    // data = 0;
+    return;
+  }
   if (_data == 0)
   {
     headingHoldActive = false;
@@ -276,18 +310,18 @@ void motion(int _data)
 
     if (_data <= 13)
     {
-      currentPwmL = turnBoost ? 60 : 30;
-      currentPwmR = turnBoost ? 60 : 30;
-    }
-    else if (_data <= 16)
-    {
       currentPwmL = turnBoost ? 80 : 40;
       currentPwmR = turnBoost ? 80 : 40;
     }
-    else
+    else if (_data <= 16)
     {
       currentPwmL = turnBoost ? 120 : 60;
       currentPwmR = turnBoost ? 120 : 60;
+    }
+    else
+    {
+      currentPwmL = turnBoost ? 180 : 90;
+      currentPwmR = turnBoost ? 180 : 90;
     }
 
     debugPwmL = currentPwmL;

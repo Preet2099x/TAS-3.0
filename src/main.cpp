@@ -32,10 +32,10 @@ int TRL = 0;
 int TLR = 0;
 int TLL = 0;
 
-int pwmPin_L = 7; // 11
-int dirPin_L = 8; // 11
-int pwmPin_R = 5; // 22
-int dirPin_R = 6; // 22
+int pwmPin_L = 7; // 7
+int dirPin_L = 8; // 8
+int pwmPin_R = 5; // 5
+int dirPin_R = 6; // 6
 
 unsigned int addressFLW = 0;
 unsigned int addressFRW = 2;
@@ -52,11 +52,11 @@ unsigned int addressTRL = 18;
 unsigned int addressTLR = 20;
 unsigned int addressTLL = 22;
 
-int encoderPin_1_L = 14;
-int encoderPin_2_L = 20;
+int encoderPin_1_L = 23;
+int encoderPin_2_L = 22;
 
-int encoderPin_1_R = 23;
-int encoderPin_2_R = 22;
+int encoderPin_1_R = 14;
+int encoderPin_2_R = 20;
 
 bool turnBoost = false;
 bool straightBoost = false;
@@ -206,20 +206,6 @@ void loop()
       {
         printAlter = !printAlter;
       }
-      else if (_data == char('a'))
-      {
-        turnBoost = !turnBoost;
-
-        Serial.print("Turn Boost: ");
-        Serial.println(turnBoost ? "ON" : "OFF");
-      }
-      else if (_data == char('b'))
-      {
-        straightBoost = !straightBoost;
-
-        Serial.print("Straight Boost: ");
-        Serial.println(straightBoost ? "ON" : "OFF");
-      }
       else if (_data != 10)
       {
         data = _data;
@@ -326,25 +312,28 @@ void loop()
     {
       bnoPrintTimer = millis();
 
+      Serial.print(data);
+      Serial.print(" | ");
+
       Serial.print(" Heading=");
       Serial.print(currentHeading);
 
       Serial.print(" | Target=");
-      Serial.print(targetHeading);
+      Serial.println(targetHeading);
 
-      Serial.print(" | Error=");
-      Serial.print(pidError);
+      // Serial.print(" | Error=");
+      // Serial.print(pidError);
 
-      Serial.print(" | Corr=");
-      Serial.print(pidCorrection);
+      // Serial.print(" | Corr=");
+      // Serial.print(pidCorrection);
 
-      Serial.print(" | L=");
-      Serial.print(debugPwmL);
+      // Serial.print(" | L=");
+      // Serial.print(debugPwmL);
 
-      Serial.print(" | R=");
-      Serial.println(debugPwmR);
-      Serial.print(" | I=");
-      Serial.println(headingIntegral);
+      // Serial.print(" | R=");
+      // Serial.println(debugPwmR);
+      // Serial.print(" | I=");
+      // Serial.println(headingIntegral);
     }
   }
 
