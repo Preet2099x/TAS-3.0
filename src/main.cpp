@@ -51,6 +51,7 @@ unsigned int addressTRR = 16;
 unsigned int addressTRL = 18;
 unsigned int addressTLR = 20;
 unsigned int addressTLL = 22;
+unsigned int addressLearnedTrim = 24;
 
 int encoderPin_1_L = 23;
 int encoderPin_2_L = 22;
@@ -96,12 +97,15 @@ float startTime, elaspedTime = 0, currentTime;
 float timeConstantControlCounter = 1000; // Chnage This As per Trail
 float startTimeControlCounter, elaspedTimeControlCounter = 0, currentTimeControlCounter;
 
+float learnedTrim = 0;
+
 void setup()
 {
   // Serial Begin
   Serial.begin(115200);
   // Serial5.begin(115200);//TODO: For Simplified Serial
   kire.begin(SLAVE_ADDRESS);
+  kire.onReceive(receiveEvent);
   // initWire();
 
   // Motor Pin Setup
@@ -160,8 +164,6 @@ void setup()
 
 void loop()
 {
-
-  kire.onReceive(receiveEvent);
 
   // Handle Fliter
   static SMA<20> filter_L;
@@ -320,6 +322,9 @@ void loop()
 
       Serial.print(" | Target=");
       Serial.println(targetHeading);
+
+      Serial.print(" | Trim=");
+      Serial.println(learnedTrim);
 
       // Serial.print(" | Error=");
       // Serial.print(pidError);

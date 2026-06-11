@@ -52,6 +52,9 @@ extern float timeConstantControlCounter;
 extern bool turnBoost;
 extern bool straightBoost;
 
+extern float learnedTrim;
+extern unsigned int addressLearnedTrim;
+
 // Pid Variable
 extern int rpmAlter;
 extern int rpmAlter_T;

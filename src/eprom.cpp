@@ -100,4 +100,11 @@ void readEEPROM()
   TRL = EEPROM.read(addressTRL);
   TLR = EEPROM.read(addressTLR);
   TLL = EEPROM.read(addressTLL);
+
+  EEPROM.get(addressLearnedTrim, learnedTrim);
+
+  if (isnan(learnedTrim))
+  {
+    learnedTrim = 0;
+  }
 }

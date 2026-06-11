@@ -1,5 +1,6 @@
 #include <var.h>
 #include <Arduino.h>
+#include <EEPROM.h>
 
 static unsigned long rampStartTime = 0;
 static bool rampActive = false;
@@ -34,6 +35,8 @@ const float Kd = 0.05f; // Low — BNO055 jitter amplifies through derivative
 
 int debugPwmL = 0;
 int debugPwmR = 0;
+
+static unsigned long trimSaveTimer = 0;
 
 int applyStartRamp(int targetPWM, int currentCommand)
 {
@@ -203,9 +206,32 @@ void motion(int _data)
 
         headingIntegral += error * dt;
         headingIntegral = constrain(headingIntegral, -15.0f, 15.0f);
-        float correction = Kp * error + Ki * headingIntegral + Kd * derivative;
+
+        if (abs(error) < 5.0f)
+        {
+          learnedTrim += error * 0.00005f;
+        }
+        learnedTrim = constrain(
+            learnedTrim,
+            -30.0f,
+            30.0f);
+
+        float correction =
+            learnedTrim +
+            Kp * error +
+            Ki * headingIntegral +
+            Kd * derivative;
         pidError = error;
         pidCorrection = correction;
+
+        if (millis() - trimSaveTimer > 300000)
+        {
+          trimSaveTimer = millis();
+
+          EEPROM.put(
+              addressLearnedTrim,
+              learnedTrim);
+        }
 
         currentPwmL = constrain(pwm + correction, 0, 255);
         currentPwmR = constrain(pwm - correction, 0, 255);
@@ -267,9 +293,32 @@ void motion(int _data)
 
         headingIntegral += error * dt;
         headingIntegral = constrain(headingIntegral, -15.0f, 15.0f);
-        float correction = Kp * error + Ki * headingIntegral + Kd * derivative;
+
+        if (abs(error) < 5.0f)
+        {
+          learnedTrim += error * 0.00005f;
+        }
+        learnedTrim = constrain(
+            learnedTrim,
+            -30.0f,
+            30.0f);
+
+        float correction =
+            learnedTrim +
+            Kp * error +
+            Ki * headingIntegral +
+            Kd * derivative;
         pidError = error;
         pidCorrection = correction;
+
+        if (millis() - trimSaveTimer > 300000)
+        {
+          trimSaveTimer = millis();
+
+          EEPROM.put(
+              addressLearnedTrim,
+              learnedTrim);
+        }
 
         currentPwmL = constrain(pwm - correction, 0, 255);
         currentPwmR = constrain(pwm + correction, 0, 255);
