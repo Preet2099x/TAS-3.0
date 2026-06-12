@@ -87,6 +87,8 @@ extern unsigned int addressTRL;
 extern unsigned int addressTLR;
 extern unsigned int addressTLL;
 
+extern bool emergencyLock;
+
 // float PID(float input);
 void readEEPROM();
 void printSetting();

@@ -60,6 +60,7 @@ int encoderPin_2_R = 20;
 
 bool turnBoost = false;
 bool straightBoost = false;
+bool emergencyLock = false;
 
 volatile int lastEncoded_L = 0;
 volatile long encoderValue_L = 0;
@@ -208,10 +209,9 @@ void loop()
       }
       else if (_data != 10)
       {
-        data = _data;
-        if (_data == data && elaspedTimeControlCounter < timeConstantControlCounter)
+        if (emergencyLock && _data != 67)
         {
-          startTimeControlCounter = currentTimeControlCounter;
+          data = 0;
         }
         else
         {
