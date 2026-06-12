@@ -56,20 +56,31 @@ int applyStartRamp(int targetPWM, int currentCommand)
     rampStartTime = millis();
     rampCommand = currentCommand;
     rampActive = true;
-    
+
     return 50;
   }
-  
+
   return targetPWM;
+}
+
+static int applyRamp(int current, int target, int step)
+{
+  if (current > target)
+  {
+    current -= step;
+    if (current < target)
+      current = target;
+  }
+  return current;
 }
 
 float normalizeHeadingError(float error)
 {
   while (error > 180.0f)
-  error -= 360.0f;
+    error -= 360.0f;
   while (error < -180.0f)
-  error += 360.0f;
-  
+    error += 360.0f;
+
   return error;
 }
 
@@ -80,38 +91,38 @@ void motion(int _data)
     if (millis() - boostCommandTimer >= 500)
     {
       boostCommandTimer = millis();
-  
+
       emergencyLock = !emergencyLock;
-  
+
       if (emergencyLock)
       {
         currentPwmL = 0;
         currentPwmR = 0;
-  
+
         analogWrite(pwmPin_L, 0);
         analogWrite(pwmPin_R, 0);
-  
+
         digitalWrite(dirPin_L, LOW);
         digitalWrite(dirPin_R, LOW);
-  
+
         headingHoldActive = false;
         headingCaptureStart = 0;
         headingIntegral = 0;
         previousPidTime = 0;
         pidError = 0;
         pidCorrection = 0;
-  
+
         data = 0;
       }
     }
-  
+
     return;
   }
   if (emergencyLock)
   {
     analogWrite(pwmPin_L, 0);
     analogWrite(pwmPin_R, 0);
-    
+
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, LOW);
 
@@ -162,38 +173,38 @@ void motion(int _data)
     rampActive = false;
     rampCommand = 0;
 
-    if (currentPwmL > 0)
+    static unsigned long rampDownTimer = 0;
+    if (millis() - rampDownTimer >= 5) // 5ms tick — tune this
     {
-      if (currentPwmL > 180)
-        currentPwmL -= 8;
-      else if (currentPwmL > 150)
-        currentPwmL -= 2;
-      else if (currentPwmL > 90)
-        currentPwmL -= 8;
-      else if (currentPwmL > 60)
-        currentPwmL -= 2;
-      else
-        currentPwmL -= 2;
+      rampDownTimer = millis();
 
-      if (currentPwmL < 0)
-        currentPwmL = 0;
-    }
+      if (currentPwmL > 0)
+      {
+        if (currentPwmL > 180)
+          currentPwmL = applyRamp(currentPwmL, 0, 8);
+        else if (currentPwmL > 150)
+          currentPwmL = applyRamp(currentPwmL, 0, 2);
+        else if (currentPwmL > 90)
+          currentPwmL = applyRamp(currentPwmL, 0, 8);
+        else if (currentPwmL > 60)
+          currentPwmL = applyRamp(currentPwmL, 0, 2);
+        else
+          currentPwmL = applyRamp(currentPwmL, 0, 2);
+      }
 
-    if (currentPwmR > 0)
-    {
-      if (currentPwmR > 180)
-        currentPwmR -= 8;
-      else if (currentPwmR > 150)
-        currentPwmR -= 2;
-      else if (currentPwmR > 90)
-        currentPwmR -= 8;
-      else if (currentPwmR > 60)
-        currentPwmR -= 2;
-      else
-        currentPwmR -= 2;
-
-      if (currentPwmR < 0)
-        currentPwmR = 0;
+      if (currentPwmR > 0)
+      {
+        if (currentPwmR > 180)
+          currentPwmR = applyRamp(currentPwmR, 0, 8);
+        else if (currentPwmR > 150)
+          currentPwmR = applyRamp(currentPwmR, 0, 2);
+        else if (currentPwmR > 90)
+          currentPwmR = applyRamp(currentPwmR, 0, 8);
+        else if (currentPwmR > 60)
+          currentPwmR = applyRamp(currentPwmR, 0, 2);
+        else
+          currentPwmR = applyRamp(currentPwmR, 0, 2);
+      }
     }
 
     analogWrite(pwmPin_L, currentPwmL);
@@ -208,7 +219,6 @@ void motion(int _data)
 
     return;
   }
-
   if (_data == 2)
   {
 
