@@ -28,9 +28,16 @@ unsigned long previousPidTime = 0;
 
 static unsigned long boostCommandTimer = 0;
 
-const float Kp = 2.0f;
-const float Ki = 0.5f;
-const float Kd = 0.05f; // Low — BNO055 jitter amplifies through derivative
+static unsigned long zeroCommandStart = 0;
+static bool zeroTimerActive = false;
+
+const float KpF = 2.0f;
+const float KiF = 0.5f;
+const float KdF = 0.05f;
+
+const float KpB = 8.0f;
+const float KiB = 0.10f;
+const float KdB = 0.08f;
 
 int debugPwmL = 0;
 int debugPwmR = 0;
@@ -160,8 +167,48 @@ void motion(int _data)
     // data = 0;
     return;
   }
+  // --- Kill motor on direction switch (1->2 or 2->1) ---
+  if ((_data == 1 && lastCommand == 2) || (_data == 2 && lastCommand == 1))
+  {
+    currentPwmL = 0;
+    currentPwmR = 0;
+
+    analogWrite(pwmPin_L, 0);
+    analogWrite(pwmPin_R, 0);
+
+    digitalWrite(dirPin_L, LOW);
+    digitalWrite(dirPin_R, LOW);
+
+    headingHoldActive = false;
+    headingCaptureStart = 0;
+    headingIntegral = 0;
+    previousHeadingError = 0;
+    previousPidTime = 0;
+    pidError = 0;
+    pidCorrection = 0;
+    targetHeading = currentHeading;
+
+    rampActive = false;
+    rampCommand = 0;
+
+    lastCommand = 0; // reset so next cycle treats it as a fresh start
+    return;
+  }
+
   if (_data == 0)
   {
+    // --- 100ms continuous zero -> disable both boosts ---
+    if (!zeroTimerActive)
+    {
+      zeroTimerActive = true;
+      zeroCommandStart = millis();
+    }
+    else if (millis() - zeroCommandStart >= 100)
+    {
+      turnBoost = false;
+      straightBoost = false;
+    }
+
     headingHoldActive = false;
     headingCaptureStart = 0;
     headingIntegral = 0;
@@ -219,6 +266,9 @@ void motion(int _data)
 
     return;
   }
+
+  // Any non-zero command resets the zero timer
+  zeroTimerActive = false;
   if (_data == 2)
   {
 
@@ -257,7 +307,9 @@ void motion(int _data)
 
         headingIntegral += error * dt;
         headingIntegral = constrain(headingIntegral, -15.0f, 15.0f);
-        float correction = Kp * error + Ki * headingIntegral + Kd * derivative;
+        float correction = KpB * error +
+                           KiB * headingIntegral +
+                           KdB * derivative;
         pidError = error;
         pidCorrection = correction;
 
@@ -321,7 +373,9 @@ void motion(int _data)
 
         headingIntegral += error * dt;
         headingIntegral = constrain(headingIntegral, -15.0f, 15.0f);
-        float correction = Kp * error + Ki * headingIntegral + Kd * derivative;
+        float correction = KpF * error +
+                           KiF * headingIntegral +
+                           KdF * derivative;
         pidError = error;
         pidCorrection = correction;
 

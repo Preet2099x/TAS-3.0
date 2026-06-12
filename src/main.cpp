@@ -319,21 +319,22 @@ void loop()
       Serial.print(currentHeading);
 
       Serial.print(" | Target=");
-      Serial.println(targetHeading);
+      Serial.print(targetHeading);
 
-      // Serial.print(" | Error=");
-      // Serial.print(pidError);
+      Serial.print(" | Error=");
+      Serial.print(pidError);
 
-      // Serial.print(" | Corr=");
-      // Serial.print(pidCorrection);
+      Serial.print(" | Corr=");
+      Serial.print(pidCorrection);
 
-      // Serial.print(" | L=");
-      // Serial.print(debugPwmL);
+      Serial.print(" | L=");
+      Serial.print(debugPwmL);
 
-      // Serial.print(" | R=");
-      // Serial.println(debugPwmR);
-      // Serial.print(" | I=");
-      // Serial.println(headingIntegral);
+      Serial.print(" | R=");
+      Serial.print(debugPwmR);
+      
+      Serial.print(" | I=");
+      Serial.println(headingIntegral);
     }
   }
 
