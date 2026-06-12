@@ -66,7 +66,13 @@ void receiveEvent(int bytesReceived)
         return;
     }
 
-    data = cmd.toInt();
-    // Serial.println(data);
+    int newCmd = cmd.toInt();
+
+    if (cameraEnabled && commandBlocked(newCmd))
+    {
+        return;
+    }
+
+    data = newCmd;
     startTimeControlCounter = currentTimeControlCounter;
 }

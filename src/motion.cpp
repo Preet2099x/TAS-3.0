@@ -107,6 +107,19 @@ void motion(int _data)
     // data = 0;
     return;
   }
+
+  if (_data == 67)
+  {
+    if (millis() - boostCommandTimer >= 500)
+    {
+      boostCommandTimer = millis();
+
+      cameraEnabled = !cameraEnabled;
+    }
+
+    return;
+  }
+
   if (_data == 0)
   {
     headingHoldActive = false;

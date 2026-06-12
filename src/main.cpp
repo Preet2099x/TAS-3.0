@@ -96,11 +96,13 @@ float startTime, elaspedTime = 0, currentTime;
 float timeConstantControlCounter = 1000; // Chnage This As per Trail
 float startTimeControlCounter, elaspedTimeControlCounter = 0, currentTimeControlCounter;
 
+bool cameraEnabled = true;
+
 void setup()
 {
   // Serial Begin
   Serial.begin(115200);
-  // Serial5.begin(115200);//TODO: For Simplified Serial
+  // Serial5 removed — camera now shares Serial
   kire.begin(SLAVE_ADDRESS);
   // initWire();
 
@@ -146,8 +148,9 @@ void setup()
   // Read Permanent Data
   readEEPROM();
 
-  Serial5.write(0);
-  Serial5.write(192);
+  // Camera init bytes — now sent over Serial (moved from Serial5)
+  Serial.write(0);
+  Serial.write(192);
   /*
   kire.setClock(400 * 1000);
   kire.begin();                // initialize I2C
@@ -182,59 +185,100 @@ void loop()
   currentTimeControlCounter = millis();
   elaspedTimeControlCounter = currentTimeControlCounter - startTimeControlCounter;
 
-  // Handle Serial Commands
-  if (Serial.available())
+  // ── Unified Serial handler: camera frames + control commands ────────────
+  // Camera frames begin with "[camera]" and are newline-terminated.
+  // All other lines are control/settings commands.
+  // Bytes accumulate in a line buffer; routing happens only when '\n' arrives,
+  // so camera bytes never reach the command path and vice versa.
   {
-    if (systemCounter == false)
+    static char serialLineBuf[512];
+    static int  serialLineIdx = 0;
+
+    while (Serial.available())
     {
-      int _data = Serial.read();
-      if (_data == char('m'))
+      char c = (char)Serial.read();
+      if (c == '\r') continue;  // strip CR from CRLF terminals
+
+      if (c != '\n')
       {
-        Serial.print(getTeensySerial());
-        Serial.print(" | ");
-        Serial.println("Motion Module");
-        data = 0;
+        if (serialLineIdx < (int)sizeof(serialLineBuf) - 1)
+          serialLineBuf[serialLineIdx++] = c;
+        continue;
       }
-      else if (_data == char('s'))
+
+      // ── '\n' received — line complete ─────────────────────────────────
+      serialLineBuf[serialLineIdx] = '\0';
+      int lineLen = serialLineIdx;
+      serialLineIdx = 0;
+
+      if (lineLen == 0) continue;
+
+      // ── Route: camera frame ───────────────────────────────────────────
+      if (strncmp(serialLineBuf, "[camera]", 8) == 0)
       {
-        systemCounter = true;
-        printAlter = false; // TODO: Can be Removed for fast testing
-        data = 0;           // TODO: Can be Removed for fast testing
-        printSetting();
+        for (int i = 0; i < lineLen; i++)
+          cameraHandleByte(serialLineBuf[i]);
+        cameraHandleByte('\n');  // trigger camera parser
+        continue;
       }
-      else if (_data == char('p'))
+
+      // ── Route: control / settings command ─────────────────────────────
+      if (!systemCounter)
       {
-        printAlter = !printAlter;
-      }
-      else if (_data != 10)
-      {
-        data = _data;
-        if (_data == data && elaspedTimeControlCounter < timeConstantControlCounter)
+        char ch = serialLineBuf[0];
+
+        // Letter commands are always exactly one character
+        if (lineLen == 1 && ch == 'm')
         {
-          startTimeControlCounter = currentTimeControlCounter;
+          Serial.print(getTeensySerial());
+          Serial.print(" | ");
+          Serial.println("Motion Module");
+          data = 0;
+        }
+        else if (lineLen == 1 && ch == 's')
+        {
+          systemCounter = true;
+          printAlter = false;
+          data = 0;
+          printSetting();
+        }
+        else if (lineLen == 1 && ch == 'p')
+        {
+          printAlter = !printAlter;
         }
         else
         {
-          data = _data;
-          startTimeControlCounter = currentTimeControlCounter;
+          // Everything else — parse as integer regardless of length.
+          // "1\n" → atoi("1") = 1, "2\n" → 2, "11\n" → 11, "230\n" → 230
+          int cmd = atoi(serialLineBuf);
+
+          if (!cameraEnabled || !commandBlocked(cmd))
+          {
+            data = cmd;
+            startTimeControlCounter = currentTimeControlCounter;
+          }
+          else
+          {
+            data = 0;  // blocked by camera — same behaviour as I2C path
+          }
+        }
+      }
+      else  // systemCounter == true  →  settings mode
+      {
+        String _data = String(serialLineBuf);
+        if (_data.length() == 1 && _data == "s")
+        {
+          Serial.println("Chaging to Control Mode");
+          systemCounter = false;
+        }
+        else if (_data.length() >= 1)
+        {
+          updatedEEPROM(_data);
         }
       }
     }
-    else
-    {
-      String _data = Serial.readString();
-      _data = _data.remove(_data.length() - 1, 1);
-      if (_data.length() == 1 && _data == "s")
-      {
-        Serial.println("Chaging to Control Mode");
-        systemCounter = false;
-      }
-      else if (_data.length() >= 1)
-      {
-        updatedEEPROM(_data);
-      }
-    }
   }
+  // ── End unified Serial handler ────────────────────────────────────────
 
   if (elaspedTimeControlCounter > timeConstantControlCounter)
   {

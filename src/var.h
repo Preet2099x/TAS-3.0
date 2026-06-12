@@ -87,6 +87,17 @@ extern unsigned int addressTRL;
 extern unsigned int addressTLR;
 extern unsigned int addressTLL;
 
+extern bool frontBlocked;
+extern bool rearBlocked;
+extern bool leftBlocked;
+extern bool rightBlocked;
+
+extern bool cameraEnabled;
+
+
+bool commandBlocked(int cmd);
+void cameraHandleByte(char c);
+
 // float PID(float input);
 void readEEPROM();
 void printSetting();
