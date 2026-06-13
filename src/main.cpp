@@ -60,7 +60,6 @@ int encoderPin_2_R = 20;
 
 bool turnBoost = false;
 bool straightBoost = false;
-bool emergencyLock = false;
 
 volatile int lastEncoded_L = 0;
 volatile long encoderValue_L = 0;
@@ -209,15 +208,8 @@ void loop()
       }
       else if (_data != 10)
       {
-        if (emergencyLock && _data != 67)
-        {
-          data = 0;
-        }
-        else
-        {
-          data = _data;
-          startTimeControlCounter = currentTimeControlCounter;
-        }
+        data = _data;
+        startTimeControlCounter = currentTimeControlCounter;
       }
     }
     else
@@ -332,7 +324,7 @@ void loop()
 
       Serial.print(" | R=");
       Serial.print(debugPwmR);
-      
+
       Serial.print(" | I=");
       Serial.println(headingIntegral);
     }

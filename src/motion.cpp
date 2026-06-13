@@ -28,8 +28,7 @@ unsigned long previousPidTime = 0;
 
 static unsigned long boostCommandTimer = 0;
 
-static unsigned long zeroCommandStart = 0;
-static bool zeroTimerActive = false;
+
 
 const float KpF = 2.0f;
 const float KiF = 0.5f;
@@ -93,48 +92,7 @@ float normalizeHeadingError(float error)
 
 void motion(int _data)
 {
-  if (_data == 67)
-  {
-    if (millis() - boostCommandTimer >= 500)
-    {
-      boostCommandTimer = millis();
 
-      emergencyLock = !emergencyLock;
-
-      if (emergencyLock)
-      {
-        currentPwmL = 0;
-        currentPwmR = 0;
-
-        analogWrite(pwmPin_L, 0);
-        analogWrite(pwmPin_R, 0);
-
-        digitalWrite(dirPin_L, LOW);
-        digitalWrite(dirPin_R, LOW);
-
-        headingHoldActive = false;
-        headingCaptureStart = 0;
-        headingIntegral = 0;
-        previousPidTime = 0;
-        pidError = 0;
-        pidCorrection = 0;
-
-        data = 0;
-      }
-    }
-
-    return;
-  }
-  if (emergencyLock)
-  {
-    analogWrite(pwmPin_L, 0);
-    analogWrite(pwmPin_R, 0);
-
-    digitalWrite(dirPin_L, LOW);
-    digitalWrite(dirPin_R, LOW);
-
-    return;
-  }
 
   if (_data == 65)
   {
@@ -167,6 +125,14 @@ void motion(int _data)
     // data = 0;
     return;
   }
+
+  // D-PAD Commands:
+  //  Remap new camera-aware commands to existing movement commands
+  if (_data == 172) _data = 115;
+  if (_data == 174) _data = 125;
+  if (_data == 272) _data = 215;
+  if (_data == 274) _data = 225;
+  
   // --- Kill motor on direction switch (1->2 or 2->1) ---
   if ((_data == 1 && lastCommand == 2) || (_data == 2 && lastCommand == 1))
   {
@@ -197,17 +163,7 @@ void motion(int _data)
 
   if (_data == 0)
   {
-    // --- 100ms continuous zero -> disable both boosts ---
-    if (!zeroTimerActive)
-    {
-      zeroTimerActive = true;
-      zeroCommandStart = millis();
-    }
-    else if (millis() - zeroCommandStart >= 100)
-    {
-      turnBoost = false;
-      straightBoost = false;
-    }
+
 
     headingHoldActive = false;
     headingCaptureStart = 0;
@@ -267,8 +223,7 @@ void motion(int _data)
     return;
   }
 
-  // Any non-zero command resets the zero timer
-  zeroTimerActive = false;
+
   if (_data == 2)
   {
 
