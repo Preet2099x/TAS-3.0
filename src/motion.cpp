@@ -28,8 +28,6 @@ unsigned long previousPidTime = 0;
 
 static unsigned long boostCommandTimer = 0;
 
-
-
 const float KpF = 2.0f;
 const float KiF = 0.5f;
 const float KdF = 0.05f;
@@ -47,13 +45,18 @@ int applyStartRamp(int targetPWM, int currentCommand)
   {
     unsigned long elapsed = millis() - rampStartTime;
 
-    if (elapsed >= 1000)
+    if (elapsed >= 1500)
     {
       rampActive = false;
       return targetPWM;
     }
 
-    return 50 + ((targetPWM - 50) * elapsed) / 1000;
+    float t = elapsed / 1500.0f;
+
+    // cubic smoothstep
+    float smooth = t * t * (3.0f - 2.0f * t);
+
+    return 30 + (targetPWM - 30) * smooth;
   }
 
   if (lastCommand == 0 &&
@@ -63,7 +66,7 @@ int applyStartRamp(int targetPWM, int currentCommand)
     rampCommand = currentCommand;
     rampActive = true;
 
-    return 50;
+    return 30;
   }
 
   return targetPWM;
@@ -92,7 +95,6 @@ float normalizeHeadingError(float error)
 
 void motion(int _data)
 {
-
 
   if (_data == 65)
   {
@@ -128,11 +130,15 @@ void motion(int _data)
 
   // D-PAD Commands:
   //  Remap new camera-aware commands to existing movement commands
-  if (_data == 172) _data = 115;
-  if (_data == 174) _data = 125;
-  if (_data == 272) _data = 215;
-  if (_data == 274) _data = 225;
-  
+  if (_data == 172)
+    _data = 115;
+  if (_data == 174)
+    _data = 125;
+  if (_data == 272)
+    _data = 215;
+  if (_data == 274)
+    _data = 225;
+
   // --- Kill motor on direction switch (1->2 or 2->1) ---
   if ((_data == 1 && lastCommand == 2) || (_data == 2 && lastCommand == 1))
   {
@@ -164,7 +170,6 @@ void motion(int _data)
   if (_data == 0)
   {
 
-
     headingHoldActive = false;
     headingCaptureStart = 0;
     headingIntegral = 0;
@@ -189,10 +194,13 @@ void motion(int _data)
           currentPwmL = applyRamp(currentPwmL, 0, 2);
         else if (currentPwmL > 90)
           currentPwmL = applyRamp(currentPwmL, 0, 8);
-        else if (currentPwmL > 60)
-          currentPwmL = applyRamp(currentPwmL, 0, 2);
         else
-          currentPwmL = applyRamp(currentPwmL, 0, 2);
+        {
+          currentPwmL = (int)(currentPwmL * 0.94f);
+
+          if (currentPwmL < 5)
+            currentPwmL = 0;
+        }
       }
 
       if (currentPwmR > 0)
@@ -203,10 +211,13 @@ void motion(int _data)
           currentPwmR = applyRamp(currentPwmR, 0, 2);
         else if (currentPwmR > 90)
           currentPwmR = applyRamp(currentPwmR, 0, 8);
-        else if (currentPwmR > 60)
-          currentPwmR = applyRamp(currentPwmR, 0, 2);
         else
-          currentPwmR = applyRamp(currentPwmR, 0, 2);
+        {
+          currentPwmR = (int)(currentPwmR * 0.94f);
+
+          if (currentPwmR < 5)
+            currentPwmR = 0;
+        }
       }
     }
 
@@ -223,8 +234,7 @@ void motion(int _data)
     return;
   }
 
-
-  if (_data == 2)
+  if (_data == 1)
   {
 
     digitalWrite(dirPin_R, LOW);
@@ -291,7 +301,7 @@ void motion(int _data)
     analogWrite(pwmPin_L, currentPwmL);
   }
 
-  else if (_data == 1)
+  else if (_data == 2)
   {
     digitalWrite(dirPin_R, HIGH);
     digitalWrite(dirPin_L, HIGH);
@@ -429,7 +439,7 @@ void motion(int _data)
     analogWrite(pwmPin_R, currentPwmR);
   }
 
-  else if (_data >= 221 && _data <= 230)
+  else if (_data >= 111 && _data <= 120)
   {
     headingHoldActive = false;
     headingCaptureStart = 0;
@@ -442,12 +452,12 @@ void motion(int _data)
     digitalWrite(dirPin_L, LOW);
     digitalWrite(dirPin_R, LOW);
 
-    if (_data <= 223)
+    if (_data <= 113)
     {
       currentPwmL = straightBoost ? 170 : 125;
       currentPwmR = straightBoost ? 120 : 90;
     }
-    else if (_data <= 226)
+    else if (_data <= 116)
     {
       currentPwmL = straightBoost ? 200 : 150;
       currentPwmR = straightBoost ? 150 : 115;
@@ -456,41 +466,6 @@ void motion(int _data)
     {
       currentPwmL = straightBoost ? 240 : 180;
       currentPwmR = straightBoost ? 80 : 60;
-    }
-
-    debugPwmL = currentPwmL;
-    debugPwmR = currentPwmR;
-    analogWrite(pwmPin_L, currentPwmL);
-    analogWrite(pwmPin_R, currentPwmR);
-  }
-
-  else if (_data >= 211 && _data <= 220)
-  {
-    headingHoldActive = false;
-    headingCaptureStart = 0;
-    headingIntegral = 0;
-    previousHeadingError = 0;
-    previousPidTime = 0;
-    pidError = 0;
-    pidCorrection = 0;
-    targetHeading = currentHeading;
-    digitalWrite(dirPin_L, LOW);
-    digitalWrite(dirPin_R, LOW);
-
-    if (_data <= 213)
-    {
-      currentPwmL = straightBoost ? 120 : 90;
-      currentPwmR = straightBoost ? 170 : 125;
-    }
-    else if (_data <= 216)
-    {
-      currentPwmL = straightBoost ? 150 : 115;
-      currentPwmR = straightBoost ? 200 : 150;
-    }
-    else
-    {
-      currentPwmL = straightBoost ? 80 : 60;
-      currentPwmR = straightBoost ? 240 : 180;
     }
 
     debugPwmL = currentPwmL;
@@ -509,16 +484,51 @@ void motion(int _data)
     pidError = 0;
     pidCorrection = 0;
     targetHeading = currentHeading;
+    digitalWrite(dirPin_L, LOW);
+    digitalWrite(dirPin_R, LOW);
+
+    if (_data <= 123)
+    {
+      currentPwmL = straightBoost ? 120 : 90;
+      currentPwmR = straightBoost ? 170 : 125;
+    }
+    else if (_data <= 126)
+    {
+      currentPwmL = straightBoost ? 150 : 115;
+      currentPwmR = straightBoost ? 200 : 150;
+    }
+    else
+    {
+      currentPwmL = straightBoost ? 80 : 60;
+      currentPwmR = straightBoost ? 240 : 180;
+    }
+
+    debugPwmL = currentPwmL;
+    debugPwmR = currentPwmR;
+    analogWrite(pwmPin_L, currentPwmL);
+    analogWrite(pwmPin_R, currentPwmR);
+  }
+
+  else if (_data >= 211 && _data <= 220)
+  {
+    headingHoldActive = false;
+    headingCaptureStart = 0;
+    headingIntegral = 0;
+    previousHeadingError = 0;
+    previousPidTime = 0;
+    pidError = 0;
+    pidCorrection = 0;
+    targetHeading = currentHeading;
 
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, HIGH);
 
-    if (_data <= 123)
+    if (_data <= 213)
     {
       currentPwmL = straightBoost ? 170 : 125;
       currentPwmR = straightBoost ? 120 : 90;
     }
-    else if (_data <= 126)
+    else if (_data <= 216)
     {
       currentPwmL = straightBoost ? 200 : 150;
       currentPwmR = straightBoost ? 120 : 90;
@@ -534,7 +544,7 @@ void motion(int _data)
     analogWrite(pwmPin_L, currentPwmL);
     analogWrite(pwmPin_R, currentPwmR);
   }
-  else if (_data >= 111 && _data <= 120)
+  else if (_data >= 221 && _data <= 230)
   {
     headingHoldActive = false;
     headingCaptureStart = 0;
@@ -547,12 +557,12 @@ void motion(int _data)
     digitalWrite(dirPin_L, HIGH);
     digitalWrite(dirPin_R, HIGH);
 
-    if (_data <= 113)
+    if (_data <= 223)
     {
       currentPwmL = straightBoost ? 120 : 90;
       currentPwmR = straightBoost ? 170 : 125;
     }
-    else if (_data <= 116)
+    else if (_data <= 226)
     {
       currentPwmL = straightBoost ? 120 : 90;
       currentPwmR = straightBoost ? 200 : 150;
