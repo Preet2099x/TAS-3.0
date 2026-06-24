@@ -44,6 +44,13 @@ extern long lastencoderValue_R;
 // extern int lastMSB_R;
 // extern int lastLSB_R;
 
+// Total (odometry) encoder counts — never reset
+extern volatile long totalEncoder_L;
+extern volatile long totalEncoder_R;
+
+// Accumulated travel distance in centimetres
+extern float totalDistanceCm;
+
 extern float startTimeControlCounter;
 extern float elaspedTimeControlCounter;
 extern float currentTimeControlCounter;
@@ -99,6 +106,7 @@ void updateEncoder_L();
 void updateEncoder_R();
 
 void motion(int _data);
+void distanceLoop();
 
 uint32_t getTeensySerial();
 float calcAlphaEMA(float fn);

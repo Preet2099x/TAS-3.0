@@ -326,7 +326,10 @@ void loop()
       Serial.print(debugPwmR);
 
       Serial.print(" | I=");
-      Serial.println(headingIntegral);
+      Serial.print(headingIntegral);
+
+      Serial.print(" | Dist(cm)=");
+      Serial.println(totalDistanceCm);
     }
   }
 
@@ -338,4 +341,7 @@ void loop()
     bnoReadTimer = millis();
     bnoStandaloneLoop();
   }
+
+  // Update odometry distance (self-rate-limits to every 20ms internally)
+  distanceLoop();
 }
