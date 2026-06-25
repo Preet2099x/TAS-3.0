@@ -249,7 +249,7 @@ void motion(int _data)
       if (headingCaptureStart == 0)
         headingCaptureStart = millis();
 
-      if (millis() - headingCaptureStart >= 200)
+      if (millis() - headingCaptureStart >= 0)
       {
         targetHeading = currentHeading;
         headingHoldActive = true;
@@ -315,7 +315,7 @@ void motion(int _data)
       if (headingCaptureStart == 0)
         headingCaptureStart = millis();
 
-      if (millis() - headingCaptureStart >= 200)
+      if (millis() - headingCaptureStart >= 0)
       {
         targetHeading = currentHeading;
         headingHoldActive = true;

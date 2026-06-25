@@ -44,7 +44,7 @@ void distanceLoop()
     lastEncoderR = currentR;
 
     // Use abs() so distance accumulates regardless of
-    // direction (odometer behaviour)
+        // direction (odometer behaviour)
     float avgDelta = (abs(deltaL) + abs(deltaR)) * 0.5f;
 
     totalDistanceCm += avgDelta * CM_PER_TICK;
