@@ -32,10 +32,10 @@ int TRL = 0;
 int TLR = 0;
 int TLL = 0;
 
-int pwmPin_L = 23; // 7
-int dirPin_L = 22; // 8
-int pwmPin_R = 14; // 5
-int dirPin_R = 20; // 6
+int pwmPin_L = 7; // 7
+int dirPin_L = 8; // 8
+int pwmPin_R = 5; // 5
+int dirPin_R = 6; // 6
 
 unsigned int addressFLW = 0;
 unsigned int addressFRW = 2;
@@ -52,14 +52,17 @@ unsigned int addressTRL = 18;
 unsigned int addressTLR = 20;
 unsigned int addressTLL = 22;
 
-int encoderPin_1_L = 7; //23
-int encoderPin_2_L = 8; //22
-
-int encoderPin_1_R = 5; //14
-int encoderPin_2_R = 4; //20
+int encoderPin_1_L = 23; //23
+int encoderPin_2_L = 22; //22
+int encoderPin_1_R = 14; //14
+int encoderPin_2_R = 20; //20
 
 bool turnBoost = false;
 bool straightBoost = false;
+
+bool frontCamLocked = false;
+bool backCamLocked = false;
+bool camBypass = false;
 
 volatile int lastEncoded_L = 0;
 volatile long encoderValue_L = 0;
@@ -247,6 +250,81 @@ void loop()
   }
   else if (emergency < 900)
   {
+    // --- Camera stop logic ---
+    static unsigned long frontLockTime = 0;
+    static unsigned long backLockTime = 0;
+    static unsigned long camBypassTimer = 0;
+
+    // 67 = toggle camera bypass
+    if (data == 67)
+    {
+      if (millis() - camBypassTimer >= 500)
+      {
+        camBypassTimer = millis();
+        camBypass = !camBypass;
+      }
+      data = 0;
+    }
+
+    if (!camBypass)
+    {
+      // Front camera: 101 lock, 201 release
+      if (data == 101)
+      {
+        frontCamLocked = true;
+        frontLockTime = millis();
+        // Instant motor kill
+        analogWrite(pwmPin_L, 0);
+        analogWrite(pwmPin_R, 0);
+        digitalWrite(dirPin_L, LOW);
+        digitalWrite(dirPin_R, LOW);
+        data = 0;
+      }
+      else if (data == 201)
+      {
+        if (frontCamLocked && (millis() - frontLockTime >= 500))
+        {
+          frontCamLocked = false;
+        }
+        data = 0;
+      }
+
+      // Back camera: 102 lock, 202 release
+      if (data == 102)
+      {
+        backCamLocked = true;
+        backLockTime = millis();
+        // Instant motor kill
+        analogWrite(pwmPin_L, 0);
+        analogWrite(pwmPin_R, 0);
+        digitalWrite(dirPin_L, LOW);
+        digitalWrite(dirPin_R, LOW);
+        data = 0;
+      }
+      else if (data == 202)
+      {
+        if (backCamLocked && (millis() - backLockTime >= 500))
+        {
+          backCamLocked = false;
+        }
+        data = 0;
+      }
+
+      // Block commands when front camera locked: 1, 111-120, 121-130
+      if (frontCamLocked)
+      {
+        if (data == 1 || (data >= 111 && data <= 130))
+          data = 0;
+      }
+
+      // Block commands when back camera locked: 2, 211-220, 221-230
+      if (backCamLocked)
+      {
+        if (data == 2 || (data >= 211 && data <= 230))
+          data = 0;
+      }
+    }
+
     motion(data);
   }
 

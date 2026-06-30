@@ -52,6 +52,11 @@ extern float timeConstantControlCounter;
 extern bool turnBoost;
 extern bool straightBoost;
 
+// Camera stop
+extern bool frontCamLocked;
+extern bool backCamLocked;
+extern bool camBypass;
+
 // Pid Variable
 extern int rpmAlter;
 extern int rpmAlter_T;
