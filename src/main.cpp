@@ -211,8 +211,11 @@ void loop()
       }
       else if (_data != 10)
       {
-        data = _data;
-        startTimeControlCounter = currentTimeControlCounter;
+          // Read the rest of the line and parse as an integer
+          String numStr = Serial.readStringUntil('\n');
+          numStr = String((char)_data) + numStr;  // prepend the first byte already read
+          data = numStr.toInt();
+          startTimeControlCounter = currentTimeControlCounter;
       }
     }
     else
