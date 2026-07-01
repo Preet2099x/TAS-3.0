@@ -265,6 +265,7 @@ void loop()
       {
         camBypassTimer = millis();
         camBypass = !camBypass;
+        Serial.println(camBypass ? "CAM BYPASS: ON (ignoring cameras)" : "CAM BYPASS: OFF (cameras active)");
       }
       data = 0;
     }
@@ -281,6 +282,7 @@ void loop()
         analogWrite(pwmPin_R, 0);
         digitalWrite(dirPin_L, LOW);
         digitalWrite(dirPin_R, LOW);
+        Serial.println("FRONT CAM: LOCKED");
         data = 0;
       }
       else if (data == 201)
@@ -288,6 +290,7 @@ void loop()
         if (frontCamLocked && (millis() - frontLockTime >= 500))
         {
           frontCamLocked = false;
+          Serial.println("FRONT CAM: FREE");
         }
         data = 0;
       }
@@ -302,6 +305,7 @@ void loop()
         analogWrite(pwmPin_R, 0);
         digitalWrite(dirPin_L, LOW);
         digitalWrite(dirPin_R, LOW);
+        Serial.println("BACK CAM: LOCKED");
         data = 0;
       }
       else if (data == 202)
@@ -309,6 +313,7 @@ void loop()
         if (backCamLocked && (millis() - backLockTime >= 500))
         {
           backCamLocked = false;
+          Serial.println("BACK CAM: FREE");
         }
         data = 0;
       }
