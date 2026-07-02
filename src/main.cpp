@@ -270,6 +270,12 @@ void loop()
       data = 0;
     }
 
+    // Track last motion command (skip camera cmds so _dirData always holds the real motion)
+    if (data != 101 && data != 102 && data != 201 && data != 202 && data != 67)
+    {
+      _dirData = data;
+    }
+
     if (!camBypass)
     {
       // Front camera: 101 lock, 201 release
@@ -277,13 +283,22 @@ void loop()
       {
         frontCamLocked = true;
         frontLockTime = millis();
-        // Instant motor kill
-        analogWrite(pwmPin_L, 0);
-        analogWrite(pwmPin_R, 0);
-        digitalWrite(dirPin_L, LOW);
-        digitalWrite(dirPin_R, LOW);
         Serial.println("FRONT CAM: LOCKED");
-        data = 0;
+        // Only kill motors if current motion is a front-blocked command
+        // Front-blocked: 1 (forward), 111-120 (fwd-left curve), 121-130 (fwd-right curve)
+        if (_dirData == 1 || (_dirData >= 111 && _dirData <= 130))
+        {
+          analogWrite(pwmPin_L, 0);
+          analogWrite(pwmPin_R, 0);
+          digitalWrite(dirPin_L, LOW);
+          digitalWrite(dirPin_R, LOW);
+          data = 0;
+        }
+        else
+        {
+          // Not a front-moving command (e.g. turning) — keep current motion, just block future front cmds
+          data = _dirData;
+        }
       }
       else if (data == 201)
       {
@@ -292,7 +307,7 @@ void loop()
           frontCamLocked = false;
           Serial.println("FRONT CAM: FREE");
         }
-        data = 0;
+        data = _dirData;
       }
 
       // Back camera: 102 lock, 202 release
@@ -300,13 +315,22 @@ void loop()
       {
         backCamLocked = true;
         backLockTime = millis();
-        // Instant motor kill
-        analogWrite(pwmPin_L, 0);
-        analogWrite(pwmPin_R, 0);
-        digitalWrite(dirPin_L, LOW);
-        digitalWrite(dirPin_R, LOW);
         Serial.println("BACK CAM: LOCKED");
-        data = 0;
+        // Only kill motors if current motion is a back-blocked command
+        // Back-blocked: 2 (backward), 211-220 (bwd-left curve), 221-230 (bwd-right curve)
+        if (_dirData == 2 || (_dirData >= 211 && _dirData <= 230))
+        {
+          analogWrite(pwmPin_L, 0);
+          analogWrite(pwmPin_R, 0);
+          digitalWrite(dirPin_L, LOW);
+          digitalWrite(dirPin_R, LOW);
+          data = 0;
+        }
+        else
+        {
+          // Not a back-moving command (e.g. turning) — keep current motion, just block future back cmds
+          data = _dirData;
+        }
       }
       else if (data == 202)
       {
@@ -315,7 +339,7 @@ void loop()
           backCamLocked = false;
           Serial.println("BACK CAM: FREE");
         }
-        data = 0;
+        data = _dirData;
       }
 
       // Block commands when front camera locked: 1, 111-120, 121-130
@@ -332,6 +356,10 @@ void loop()
           data = 0;
       }
     }
+
+    // Update _dirData after blocking so it reflects what motion actually runs
+    if (data != 0)
+      _dirData = data;
 
     motion(data);
   }
